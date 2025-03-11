@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 import 'model/model_chatroom.dart';
 
@@ -13,91 +17,44 @@ class ChatListPage extends StatefulWidget {
 
 class _ChatListPageState extends State<ChatListPage> {
   final ScrollController _scrollController = ScrollController();
-  // TODO : 채팅방 리스트 더미데이터로 우선 설정 -> DB에서 가져오기
-  final List<ChatRoom> _data = [
-    ChatRoom(
-        id: 1,
-        name: '안녕부동산',
-        lastmsg: '가격 조정이 가능한가요?',
-        num: 2,
-        dateTime: DateTime(2025, 3, 1, 10, 30)),
-    ChatRoom(
-        id: 2,
-        name: '녹차마을',
-        lastmsg: '매매가 조정 가능한가요?.',
-        num: 4,
-        dateTime: DateTime(2025, 3, 2, 14, 0)),
-    ChatRoom(
-        id: 3,
-        name: 'Game Night',
-        lastmsg: '보증금 조정 가능한가요?.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 3, 18, 45)),
-    ChatRoom(
-        id: 4,
-        name: '삐약이',
-        lastmsg: '너무 비싼 것 같은데욥.',
-        num: 9,
-        dateTime: DateTime(2025, 3, 4, 11, 15)),
-    ChatRoom(
-        id: 5,
-        name: '콩콩이',
-        lastmsg: '스티커를 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 5, 13, 0)),
-    ChatRoom(
-        id: 6,
-        name: '한전',
-        lastmsg: '매매가 조정 가능한가요?.',
-        num: 8,
-        dateTime: DateTime(2025, 3, 6, 16, 30)),
-    ChatRoom(
-        id: 7,
-        name: '배구팟',
-        lastmsg: '사진을 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 7, 9, 0)),
-    ChatRoom(
-        id: 8,
-        name: '지호',
-        lastmsg: '스티커를 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 6, 20, 0)),
-    ChatRoom(
-        id: 9,
-        name: '태훈',
-        lastmsg: '스티커를 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 6, 22, 0)),
-    ChatRoom(
-        id: 10,
-        name: '보배교',
-        lastmsg: '사진을 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 7, 7, 30)),
-    ChatRoom(
-        id: 11,
-        name: '은비',
-        lastmsg: '스티커를 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 7, 12, 0)),
-    ChatRoom(
-        id: 12,
-        name: '강산',
-        lastmsg: '사진3장을 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 6, 14, 45)),
-    ChatRoom(
-        id: 13,
-        name: '민호',
-        lastmsg: '사진30장을 보냈어요.',
-        num: 2,
-        dateTime: DateTime(2025, 3, 6, 17, 30)),
+  late List<ChatRoom> _data = [
+    // ChatRoom(
+    //     id: 1,
+    //     name: '안녕부동산',
+    //     lastmsg: '가격 조정이 가능한가요?',
+    //     num: 2,
+    //     dateTime: DateTime(2025, 3, 1, 10, 30)),
+    // ChatRoom(
+    //     id: 2,
+    //     name: '녹차마을',
+    //     lastmsg: '매매가 조정 가능한가요?.',
+    //     num: 4,
+    //     dateTime: DateTime(2025, 3, 2, 14, 0)),
   ];
+
+  // API를 호출하여 데이터를 가져오는 함수
+  Future<void> fetchData() async {
+    final response = await http.get(Uri.parse('http://localhost:8080/chat'));
+
+    if (response.statusCode == 200) {
+      // JSON 형식의 응답을 Dart 객체로 변환하여 데이터 리스트에 저장
+      setState(() {
+        _data = json
+            .decode(response.body)
+            .map<ChatRoom>((json) => ChatRoom.fromJson(json))
+            .toList();
+        _data.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+        log(response.body);
+      });
+    } else {
+      log('Failed to load data: ${response.statusCode}');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _data.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    fetchData();
   }
 
   bool isLoading = false;

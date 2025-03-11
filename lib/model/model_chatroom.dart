@@ -1,6 +1,6 @@
 class ChatRoom {
   ChatRoom({
-    required this.id, // 메시지 보낸 유저의 아이디
+    required this.id,
     required this.name,
     required this.lastmsg,
     required this.num,
@@ -15,5 +15,14 @@ class ChatRoom {
   @override
   String toString() {
     return '$name $lastmsg (ID: $id, Num: $num, Date: ${dateTime.toLocal()})';
+  }
+
+  factory ChatRoom.fromJson(Map<String, dynamic> json) {
+    return ChatRoom(
+        id: json['id'],
+        name: json['name'],
+        lastmsg: json['lastmsg'] ?? 's',
+        num: json['memberNum'],
+        dateTime: DateTime.parse(json['regDate']));
   }
 }

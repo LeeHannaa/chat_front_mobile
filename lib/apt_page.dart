@@ -37,7 +37,7 @@ class _AptPageState extends State<AptPage> {
                 ElevatedButton(
                   onPressed: () {
                     context.push('/chat',
-                        extra: {'id': 1, 'name': '안녕부동산'}); // 채팅 페이지로 이동
+                        extra: {'id': 3, 'name': '동그라미하우스'}); // 채팅 페이지로 이동
                   },
                   child: const Text("채팅 문의"),
                 ),
