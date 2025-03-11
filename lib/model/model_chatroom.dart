@@ -1,6 +1,6 @@
 class ChatRoom {
   ChatRoom({
-    required this.id,
+    required this.id, // 메시지 보낸 유저의 아이디
     required this.name,
     required this.lastmsg,
     required this.num,
