@@ -7,7 +7,7 @@ class Message {
     required this.roomId,
     required this.createTime,
   });
-  final int id;
+  final String id;
   final String name;
   final int writerId;
   final String message;
@@ -22,7 +22,7 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
         id: json['id'],
-        name: json['name'],
+        name: json['writerName'],
         writerId: json['writerId'],
         roomId: json['roomId'],
         message: json['msg'],

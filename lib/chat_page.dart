@@ -8,9 +8,15 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.chatId, required this.chatName});
-  final int chatId;
+  // TODO : 채팅 리스트에서 넘어오는건 ok, 매물 상세페이지에서 넘어오는건 따로 설정해줘야할 것 같은데?
+  const ChatPage(
+      {super.key,
+      required this.id,
+      required this.chatName,
+      required this.from});
+  final int id;
   final String chatName;
+  final String from;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -20,10 +26,9 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController chatInputScrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
   bool isBtActive = false;
-  // TODO : 나의 userId를 저장시키고 message의 userId와 비교해서 ui 설계
-  int myId = 4;
+  // TODO : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
+  int myId = 1;
 
-  // TODO : 채팅방 내 채팅 내용들 우선 더미데이터 사용 -> DB에서 가져오기
   final List<Message> allMessages = [
     // Message(
     //   id: 1,
@@ -41,77 +46,30 @@ class _ChatPageState extends State<ChatPage> {
     //   roomId: 2,
     //   createTime: "2025-03-11 14:32:00",
     // ),
-    // Message(
-    //   id: 3,
-    //   name: "이한나",
-    //   writerId: 4,
-    //   message: "가격 조정이 가능한가요?",
-    //   roomId: 2,
-    //   createTime: "2025-03-11 14:35:00",
-    // ),
-    // Message(
-    //   id: 4,
-    //   name: "이한나",
-    //   writerId: 4,
-    //   message: "보증금을 100만 낮출 수 있나요?",
-    //   roomId: 2,
-    //   createTime: "2025-03-11 14:40:00",
-    // ),
-    // Message(
-    //   id: 5,
-    //   name: "빈둘기",
-    //   writerId: 1,
-    //   message: "방 구했어?",
-    //   roomId: 1,
-    //   createTime: "2025-03-11 14:42:00",
-    // ),
-    // Message(
-    //   id: 6,
-    //   name: "이한나",
-    //   writerId: 4,
-    //   message: "아직... VIP 부동산에 연락햇어",
-    //   roomId: 1,
-    //   createTime: "2025-03-11 14:45:00",
-    // ),
-    // Message(
-    //   id: 7,
-    //   name: "빈둘기",
-    //   writerId: 1,
-    //   message: "구하면 알려줘.",
-    //   roomId: 1,
-    //   createTime: "2025-03-11 14:47:00",
-    // ),
-    // Message(
-    //   id: 8,
-    //   name: "이한나",
-    //   writerId: 4,
-    //   message: "오늘 거래 가능한가요?",
-    //   roomId: 3,
-    //   createTime: "2025-03-11 14:47:40",
-    // ),
-    // Message(
-    //   id: 9,
-    //   name: "동그라미하우스",
-    //   writerId: 3,
-    //   message: "몇시 방문이세요?",
-    //   roomId: 3,
-    //   createTime: "2025-03-11 14:48:00",
-    // ),
   ];
   late List<Message> messages;
 
-  //TODO : 채팅방 메시지 카산드라 db랑 연결 안되는 error
+  // 채팅 방 id를 넘기는 api
   Future<void> fetchData() async {
-    final response = await http.get(
-        Uri.parse('http://localhost:8080/chat/find/list/${widget.chatId}'));
+    String apiUrl;
+    if (widget.from == 'chatlist') {
+      log("chatlist에서 옴!!!");
+      apiUrl =
+          'http://localhost:8080/chatmsg/find/list/${widget.id}'; // 채팅 방 id 전달
+    } else {
+      apiUrl =
+          'http://localhost:8080/chatmsg/apt/find/list/${widget.id}'; // 매물 id 전달
+    }
+    final response = await http.get(Uri.parse(apiUrl));
 
     if (response.statusCode == 200) {
       // JSON 형식의 응답을 Dart 객체로 변환하여 데이터 리스트에 저장
+      var decodedResponse = json.decode(response.body);
+      var messageList = decodedResponse[0]['body'] as List;
+
       setState(() {
-        messages = json
-            .decode(response.body)
-            .map<Message>((json) => Message.fromJson(json))
-            .toList();
+        messages =
+            messageList.map<Message>((json) => Message.fromJson(json)).toList();
         log(response.body);
       });
     } else {
@@ -134,7 +92,6 @@ class _ChatPageState extends State<ChatPage> {
     } else if (isYesterday) {
       return '어제';
     } else {
-      // 그 외에는 년.월.일 형식으로 출력
       return DateFormat('yyyy.MM.dd').format(dateTime);
     }
   }
@@ -149,9 +106,8 @@ class _ChatPageState extends State<ChatPage> {
         this.isBtActive = isBtActive;
       });
     });
-    messages = allMessages
-        .where((message) => message.roomId == widget.chatId)
-        .toList();
+    messages =
+        allMessages.where((message) => message.roomId == widget.id).toList();
     if (messages.isEmpty) {
       messages = [];
     }
@@ -329,7 +285,7 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() {
     String message = messageController.text;
     if (message.isNotEmpty) {
-      log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.chatId}, 메시지 : $message, 시간: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())} ");
+      log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.id}, 메시지 : $message, 시간: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())} ");
       messageController.clear();
       setState(() {
         isBtActive = false;

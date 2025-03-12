@@ -15,7 +15,7 @@ final _router = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) => const HomePage(
-        title: 'DDHOUSE',
+        title: 'DDHOUSE 매물 리스트',
       ),
     ),
     GoRoute(
@@ -27,18 +27,27 @@ final _router = GoRouter(
       path: '/chat',
       builder: (BuildContext context, GoRouterState state) {
         final extra = state.extra as Map<String, dynamic>? ?? {};
-        final chatId = extra['id'] as int? ?? -1;
+        final id = extra['id'] as int? ?? -1; // 채팅방 id || 매물 id
         final chatName = extra['name'] as String? ?? '알 수 없음';
+        final from = extra['from'] as String? ?? '경로 없음';
         return ChatPage(
-          chatId: chatId,
+          id: id,
           chatName: chatName,
+          from: from,
         );
       },
     ),
     GoRoute(
-      path: '/apt',
-      builder: (BuildContext context, GoRouterState state) => const AptPage(),
-    ),
+        path: '/apt',
+        builder: (BuildContext context, GoRouterState state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final aptId = extra['aptId'] as int? ?? -1;
+          final aptName = extra['aptName'] as String? ?? '알 수 없음';
+          return AptPage(
+            aptId: aptId,
+            aptName: aptName,
+          );
+        }),
   ],
 );
 

@@ -109,8 +109,11 @@ class _ChatListPageState extends State<ChatListPage> {
                   setState(() {
                     _clickedIndex = index;
                   });
-                  context
-                      .push('/chat', extra: {'id': chat.id, 'name': chat.name});
+                  context.push('/chat', extra: {
+                    'id': chat.id,
+                    'name': chat.name,
+                    'from': 'chatlist'
+                  });
                 },
                 child: Container(
                   padding:
