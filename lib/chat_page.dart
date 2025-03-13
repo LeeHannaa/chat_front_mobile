@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
-  // TODO : 채팅 리스트에서 넘어오는건 ok, 매물 상세페이지에서 넘어오는건 따로 설정해줘야할 것 같은데?
   const ChatPage(
       {super.key,
       required this.id,
@@ -26,7 +25,7 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController chatInputScrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
   bool isBtActive = false;
-  // TODO : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
+  // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
   int myId = 1;
 
   final List<Message> allMessages = [
@@ -58,7 +57,7 @@ class _ChatPageState extends State<ChatPage> {
           'http://localhost:8080/chatmsg/find/list/${widget.id}'; // 채팅 방 id 전달
     } else {
       apiUrl =
-          'http://localhost:8080/chatmsg/apt/find/list/${widget.id}'; // 매물 id 전달
+          'http://localhost:8080/chatmsg/apt/find/list/${widget.id}?myId=$myId'; // 매물 id 전달
     }
     final response = await http.get(Uri.parse(apiUrl));
 

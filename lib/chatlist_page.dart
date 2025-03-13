@@ -31,13 +31,13 @@ class _ChatListPageState extends State<ChatListPage> {
     //     num: 4,
     //     dateTime: DateTime(2025, 3, 2, 14, 0)),
   ];
-
-  // API를 호출하여 데이터를 가져오는 함수
+  // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
+  int myId = 1;
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/chat'));
+    final response =
+        await http.get(Uri.parse('http://localhost:8080/chat?myId=$myId'));
 
     if (response.statusCode == 200) {
-      // JSON 형식의 응답을 Dart 객체로 변환하여 데이터 리스트에 저장
       setState(() {
         _data = json
             .decode(response.body)
@@ -69,19 +69,16 @@ class _ChatListPageState extends State<ChatListPage> {
         dateTime.day + 1 == today.day;
 
     if (isSameDay) {
-      // 오늘 날짜와 동일하면 시간만 출력
       return DateFormat('HH:mm').format(dateTime);
     } else if (isYesterday) {
       return '어제';
     } else {
-      // 그 외에는 년.월.일 형식으로 출력
       return DateFormat('yyyy.MM.dd').format(dateTime);
     }
   }
 
   @override
   void dispose() {
-    // 위젯이 소멸될 때 스크롤 컨트롤러 해제
     _scrollController.dispose();
     super.dispose();
   }
