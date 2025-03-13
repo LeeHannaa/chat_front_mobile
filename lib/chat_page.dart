@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage(
@@ -24,6 +25,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final ScrollController chatInputScrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
+  late final WebSocketChannel _channel;
   bool isBtActive = false;
   // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
   int myId = 1;
@@ -98,7 +100,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    // WebSocket 연결
+    _channel =
+        WebSocketChannel.connect(Uri.parse('ws://localhost:8080/chatting'));
     fetchData();
+
     messageController.addListener(() {
       final isBtActive = messageController.text.isNotEmpty;
       setState(() {
@@ -115,6 +121,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     messageController.dispose();
+    _channel.sink.close();
     super.dispose();
   }
 
@@ -203,6 +210,15 @@ class _ChatPageState extends State<ChatPage> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              StreamBuilder(
+                                  stream: _channel.stream,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return Text(snapshot.data);
+                                    } else {
+                                      return Container();
+                                    }
+                                  }),
                             ],
                           ),
                         ),
@@ -281,10 +297,19 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     String message = messageController.text;
     if (message.isNotEmpty) {
+      final messageData = {
+        'roomId': widget.id,
+        'msg': message,
+        'writerId': myId,
+        'createdDate': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())
+      };
+      _channel.sink.add(message);
+
       log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.id}, 메시지 : $message, 시간: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())} ");
+
       messageController.clear();
       setState(() {
         isBtActive = false;
