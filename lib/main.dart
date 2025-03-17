@@ -1,6 +1,10 @@
-import 'package:chat_application/apt_page.dart';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
+
+import 'package:chat_application/apt_page.dart';
 
 import 'chat_page.dart';
 import 'chatlist_page.dart';
@@ -51,8 +55,18 @@ final _router = GoRouter(
   ],
 );
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   // This widget is the root of your application.
   @override

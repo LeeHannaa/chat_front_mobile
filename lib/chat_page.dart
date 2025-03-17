@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:chat_application/model/model_message.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:intl/intl.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
+
+import 'package:chat_application/model/model_message.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage(
@@ -25,10 +26,41 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final ScrollController chatInputScrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
-  late final WebSocketChannel _channel;
+  // late StompClient stompClient;
   bool isBtActive = false;
   // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
   int myId = 1;
+
+  late StompClient stompClient;
+  void connect() {
+    stompClient = StompClient(
+      config: StompConfig(
+        url: 'ws://localhost:8080/ws-stomp',
+        onConnect: (StompFrame frame) {
+          log('Connected to WebSocket');
+
+          // 메시지 구독
+          stompClient.subscribe(
+            destination: '/sub/message',
+            callback: (StompFrame frame) {
+              if (frame.body != null) {
+                log("Received: ${frame.body}");
+              }
+            },
+          );
+        },
+        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
+        onDisconnect: (StompFrame frame) => log('Disconnected'),
+      ),
+    );
+
+    // WebSocket 연결 시작
+    stompClient.activate();
+  }
+
+  void disconnect() {
+    stompClient.deactivate();
+  }
 
   final List<Message> allMessages = [
     // Message(
@@ -100,11 +132,8 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    // WebSocket 연결
-    _channel =
-        WebSocketChannel.connect(Uri.parse('ws://localhost:8080/chatting'));
     fetchData();
-
+    connect(); // 웹소켓 연결
     messageController.addListener(() {
       final isBtActive = messageController.text.isNotEmpty;
       setState(() {
@@ -121,7 +150,6 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     messageController.dispose();
-    _channel.sink.close();
     super.dispose();
   }
 
@@ -210,15 +238,6 @@ class _ChatPageState extends State<ChatPage> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              StreamBuilder(
-                                  stream: _channel.stream,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      return Text(snapshot.data);
-                                    } else {
-                                      return Container();
-                                    }
-                                  }),
                             ],
                           ),
                         ),
@@ -304,11 +323,14 @@ class _ChatPageState extends State<ChatPage> {
         'roomId': widget.id,
         'msg': message,
         'writerId': myId,
-        'createdDate': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())
+        'createdDate':
+            DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
       };
-      _channel.sink.add(message);
-
-      log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.id}, 메시지 : $message, 시간: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())} ");
+      stompClient.send(
+        destination: '/app/message',
+        body: jsonEncode(messageData),
+      );
+      log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.id}, 메시지 : $message, 시간: ${DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now())} ");
 
       messageController.clear();
       setState(() {
