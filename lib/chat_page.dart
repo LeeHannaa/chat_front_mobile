@@ -59,6 +59,7 @@ class _ChatPageState extends State<ChatPage> {
                     final receivedChat = Message.fromJson(parsedMessage);
                     messages.add(receivedChat);
                   });
+                  moveScroll(chatInputScrollController);
                 }
               },
             );
@@ -106,6 +107,7 @@ class _ChatPageState extends State<ChatPage> {
               .map<Message>((json) => Message.fromJson(json))
               .toList();
         });
+        moveScroll(chatInputScrollController);
       }
       connect(); // 웹소켓 연결
 
@@ -150,7 +152,20 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     messageController.dispose();
+    chatInputScrollController.dispose();
     super.dispose();
+  }
+
+  void moveScroll(ScrollController controller) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.hasClients) {
+        controller.animateTo(
+          controller.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 80), // 부드러운 스크롤
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
