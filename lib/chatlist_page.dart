@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -32,8 +33,14 @@ class _ChatListPageState extends State<ChatListPage> {
     //     dateTime: DateTime(2025, 3, 2, 14, 0)),
   ];
   // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
-  int myId = 1;
+  int? myId;
+  // myId 불러오는 함수
+  Future<void> _loadMyId() async {
+    myId = await SharedPreferencesHelper.getMyId();
+  }
+
   Future<void> fetchData() async {
+    await _loadMyId();
     final response =
         await http.get(Uri.parse('http://localhost:8080/chat?myId=$myId'));
 
@@ -54,6 +61,7 @@ class _ChatListPageState extends State<ChatListPage> {
   @override
   void initState() {
     super.initState();
+
     fetchData();
   }
 

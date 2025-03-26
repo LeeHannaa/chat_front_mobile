@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-
 import 'package:chat_application/model/model_message.dart';
+
+// TODO : 채팅리스트에서도, 매물 상세보기 페이지에서도 채팅방으로 입장 시 id를 못찾고 카산드라 db에 null 값으로 저장되고 있음,  채팅창 한번 더 클릭해야 ui 업데이트되는 오류
 
 class ChatPage extends StatefulWidget {
   const ChatPage(
@@ -15,7 +17,7 @@ class ChatPage extends StatefulWidget {
       required this.id,
       required this.chatName,
       required this.from});
-  final int id;
+  final int id; // 매물 id이거나 roomId이거나
   final String chatName;
   final String from;
 
@@ -28,8 +30,14 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController messageController = TextEditingController();
   // late StompClient stompClient;
   bool isBtActive = false;
-  // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
-  int myId = 1;
+  int? myId;
+  String? myName;
+  Future<void> _loadMyIdAndMyName() async {
+    myId = await SharedPreferencesHelper.getMyId();
+    myName = await SharedPreferencesHelper.getMyName();
+  }
+
+  int? roomId;
 
   late StompClient stompClient;
   void connect() {
@@ -38,16 +46,17 @@ class _ChatPageState extends State<ChatPage> {
         url: 'ws://localhost:8080/ws-stomp',
         onConnect: (StompFrame frame) {
           log('Connected to WebSocket');
-
-          // 메시지 구독
-          stompClient.subscribe(
-            destination: '/sub/message',
-            callback: (StompFrame frame) {
-              if (frame.body != null) {
-                log("Received: ${frame.body}");
-              }
-            },
-          );
+          if (roomId != null) {
+            // 메시지 구독
+            stompClient.subscribe(
+              destination: '/topic/chatroom/$roomId',
+              callback: (StompFrame frame) {
+                if (frame.body != null) {
+                  log("Received: ${frame.body}");
+                }
+              },
+            );
+          }
         },
         onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
         onDisconnect: (StompFrame frame) => log('Disconnected'),
@@ -85,11 +94,14 @@ class _ChatPageState extends State<ChatPage> {
   // 채팅 방 id를 넘기는 api
   Future<void> fetchData() async {
     String apiUrl;
+    await _loadMyIdAndMyName();
     if (widget.from == 'chatlist') {
-      log("chatlist에서 옴!!!");
+      log("chatlist에서 옴!!! roomId : ${widget.id}");
+      roomId = widget.id;
       apiUrl =
           'http://localhost:8080/chatmsg/find/list/${widget.id}'; // 채팅 방 id 전달
     } else {
+      log("apt에서 옴!!! aptId : ${widget.id}");
       apiUrl =
           'http://localhost:8080/chatmsg/apt/find/list/${widget.id}?myId=$myId'; // 매물 id 전달
     }
@@ -100,11 +112,15 @@ class _ChatPageState extends State<ChatPage> {
       var decodedResponse = json.decode(response.body);
       var messageList = decodedResponse[0]['body'] as List;
 
-      setState(() {
+      if (roomId == null) {
+        roomId = (messageList[0]['roomId']);
+      } else {
         messages =
             messageList.map<Message>((json) => Message.fromJson(json)).toList();
-        log(response.body);
-      });
+      }
+      connect(); // 웹소켓 연결
+
+      log(response.body);
     } else {
       log('Failed to load data: ${response.statusCode}');
     }
@@ -133,7 +149,6 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     fetchData();
-    connect(); // 웹소켓 연결
     messageController.addListener(() {
       final isBtActive = messageController.text.isNotEmpty;
       setState(() {
@@ -319,10 +334,12 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() async {
     String message = messageController.text;
     if (message.isNotEmpty) {
+      log("roomId저장하는 Id 확인: $roomId");
       final messageData = {
-        'roomId': widget.id,
+        'roomId': roomId,
         'msg': message,
         'writerId': myId,
+        'writerName': myName,
         'createdDate':
             DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
       };
@@ -330,7 +347,7 @@ class _ChatPageState extends State<ChatPage> {
         destination: '/app/message',
         body: jsonEncode(messageData),
       );
-      log("전송된 메시지: 내아이디 : $myId, 채팅방 아이디 : ${widget.id}, 메시지 : $message, 시간: ${DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now())} ");
+      log("전송된 메시지: 내아이디 : $myId, 내이름 : $myName, 채팅방 아이디 : $roomId, 메시지 : $message, 시간: ${DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now())} ");
 
       messageController.clear();
       setState(() {

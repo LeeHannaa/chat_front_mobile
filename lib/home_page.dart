@@ -6,8 +6,9 @@ import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
+import 'apis/userApi.dart';
 import 'model/model_apt.dart';
-import 'src/widgets.dart';
+import './src/data/keyData.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -19,33 +20,54 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late List<Apt> _apts = [];
-  Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/apt'));
+  final TextEditingController _idController = TextEditingController();
+  int? myId;
+  String? myName;
+  Future<void> _saveMyIdAndName(int myId, String myName) async {
+    await SharedPreferencesHelper.saveMyId(myId);
+    await SharedPreferencesHelper.saveMyName(myName);
+    setState(() {
+      this.myId = myId; // 데이터 저장 후 UI 갱신
+      this.myName = myName;
+    });
+  }
 
-    if (response.statusCode == 200) {
-      // JSON 형식의 응답을 Dart 객체로 변환하여 데이터 리스트에 저장
-      setState(() {
-        _apts = json
-            .decode(response.body)
-            .map<Apt>((json) => Apt.fromJson(json))
-            .toList();
-        log(response.body);
-      });
-    } else {
-      log('Failed to load data: ${response.statusCode}');
-    }
+  Future<void> _loadMyIdAndMyName() async {
+    myId = await SharedPreferencesHelper.getMyId();
+    myName = await SharedPreferencesHelper.getMyName();
   }
 
   @override
   void initState() {
+    _loadMyIdAndMyName();
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    fetchData();
+  }
+
+  /// API 호출 및 데이터 저장
+  Future<void> _fetchUserData() async {
+    String inputId = _idController.text.trim();
+    if (inputId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID를 입력해주세요.')),
+      );
+      return;
+    }
+    try {
+      final userData = await fetchUserInfo(int.parse(inputId));
+      setState(() {
+        log("userData 확인 : $userData");
+        _saveMyIdAndName(userData['id'], userData['name']);
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('유저 정보를 불러오지 못했습니다.')),
+      );
+    }
   }
 
   @override
@@ -65,42 +87,51 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Stack(
-        children: <Widget>[
-          ListView.builder(
-            itemCount: _apts.length,
-            itemBuilder: (context, index) {
-              final apt = _apts[index];
-              return GestureDetector(
-                onTap: () {
-                  context.push('/apt',
-                      extra: {'aptId': apt.id, 'aptName': apt.aptName});
-                },
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 5,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      apt.aptName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Column의 크기를 최소화하여 중앙 정렬 효과
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                context.push('/aptlist');
+              },
+              child: const Text('매물 페이지 이동'),
+            ),
+            const SizedBox(height: 50),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 200, // 입력창 너비
+                  height: 40, // 입력창 높이
+                  child: TextField(
+                    controller: _idController,
+                    decoration: const InputDecoration(
+                      labelText: '개인 ID 입력',
+                      border: OutlineInputBorder(),
                     ),
+                    keyboardType: TextInputType.number,
+                    onSubmitted: (_) => _fetchUserData(),
                   ),
                 ),
-              );
-            },
-          ),
-        ],
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _fetchUserData,
+                  child: const Text('불러오기'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            (myId != null && myName != null)
+                ? Column(
+                    children: [
+                      Text(myId.toString()),
+                      Text(myName!),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
       ),
     );
   }

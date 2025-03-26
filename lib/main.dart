@@ -1,13 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-import 'package:chat_application/apt_page.dart';
+import 'package:chat_application/aptDetail_page.dart';
 
 import 'chat_page.dart';
 import 'chatlist_page.dart';
+import 'aptlist_page.dart';
 import 'home_page.dart';
 
 void main() {
@@ -19,7 +17,7 @@ final _router = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) => const HomePage(
-        title: 'DDHOUSE 매물 리스트',
+        title: 'DDHOUSE 사용자 로그인',
       ),
     ),
     GoRoute(
@@ -42,12 +40,18 @@ final _router = GoRouter(
       },
     ),
     GoRoute(
-        path: '/apt',
+      path: '/aptlist',
+      builder: (BuildContext context, GoRouterState state) => const AptListPage(
+        title: 'DDHOUSE 매물리스트',
+      ),
+    ),
+    GoRoute(
+        path: '/aptDetail',
         builder: (BuildContext context, GoRouterState state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           final aptId = extra['aptId'] as int? ?? -1;
           final aptName = extra['aptName'] as String? ?? '알 수 없음';
-          return AptPage(
+          return AptDetailPage(
             aptId: aptId,
             aptName: aptName,
           );

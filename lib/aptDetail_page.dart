@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_application/model/model_apt.dart';
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
@@ -9,17 +10,22 @@ import 'src/widgets.dart';
 
 import 'package:http/http.dart' as http;
 
-class AptPage extends StatefulWidget {
-  const AptPage({super.key, required this.aptName, required this.aptId});
+class AptDetailPage extends StatefulWidget {
+  const AptDetailPage({super.key, required this.aptName, required this.aptId});
   final int aptId; // 매물 id
   final String aptName;
 
   @override
-  State<AptPage> createState() => _AptPageState();
+  State<AptDetailPage> createState() => _AptDetailPageState();
 }
 
-class _AptPageState extends State<AptPage> {
-  int myId = 1;
+class _AptDetailPageState extends State<AptDetailPage> {
+  int? myId;
+  // myId 불러오는 함수
+  Future<void> _loadMyId() async {
+    myId = await SharedPreferencesHelper.getMyId();
+  }
+
   Apt? _apt;
   Future<void> fetchData() async {
     final response = await http
@@ -38,6 +44,7 @@ class _AptPageState extends State<AptPage> {
   @override
   void initState() {
     super.initState();
+    _loadMyId();
     fetchData();
   }
 
