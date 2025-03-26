@@ -1,13 +1,12 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 
+import 'apis/chatApi.dart';
 import 'model/model_chatroom.dart';
+import './src/format/formatDate.dart';
 
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
@@ -18,20 +17,7 @@ class ChatListPage extends StatefulWidget {
 
 class _ChatListPageState extends State<ChatListPage> {
   final ScrollController _scrollController = ScrollController();
-  late List<ChatRoom> _data = [
-    // ChatRoom(
-    //     id: 1,
-    //     name: '안녕부동산',
-    //     lastmsg: '가격 조정이 가능한가요?',
-    //     num: 2,
-    //     dateTime: DateTime(2025, 3, 1, 10, 30)),
-    // ChatRoom(
-    //     id: 2,
-    //     name: '녹차마을',
-    //     lastmsg: '매매가 조정 가능한가요?.',
-    //     num: 4,
-    //     dateTime: DateTime(2025, 3, 2, 14, 0)),
-  ];
+  late List<ChatRoom> _data = [];
   // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
   int? myId;
   // myId 불러오는 함수
@@ -39,22 +25,15 @@ class _ChatListPageState extends State<ChatListPage> {
     myId = await SharedPreferencesHelper.getMyId();
   }
 
-  Future<void> fetchData() async {
+  Future<void> _loadChatRooms() async {
     await _loadMyId();
-    final response =
-        await http.get(Uri.parse('http://localhost:8080/chat?myId=$myId'));
-
-    if (response.statusCode == 200) {
+    try {
+      final chatRooms = await fetchChatRooms(myId!);
       setState(() {
-        _data = json
-            .decode(response.body)
-            .map<ChatRoom>((json) => ChatRoom.fromJson(json))
-            .toList();
-        _data.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-        log(response.body);
+        _data = chatRooms;
       });
-    } else {
-      log('Failed to load data: ${response.statusCode}');
+    } catch (e) {
+      log('Error loading chat rooms: $e');
     }
   }
 
@@ -62,28 +41,10 @@ class _ChatListPageState extends State<ChatListPage> {
   void initState() {
     super.initState();
 
-    fetchData();
+    _loadChatRooms();
   }
 
   bool isLoading = false;
-
-  String _formatDate(DateTime dateTime) {
-    final today = DateTime.now();
-    final isSameDay = dateTime.year == today.year &&
-        dateTime.month == today.month &&
-        dateTime.day == today.day;
-    final isYesterday = dateTime.year == today.year &&
-        dateTime.month == today.month &&
-        dateTime.day + 1 == today.day;
-
-    if (isSameDay) {
-      return DateFormat('HH:mm').format(dateTime);
-    } else if (isYesterday) {
-      return '어제';
-    } else {
-      return DateFormat('yyyy.MM.dd').format(dateTime);
-    }
-  }
 
   @override
   void dispose() {
@@ -151,7 +112,7 @@ class _ChatListPageState extends State<ChatListPage> {
                                       fontSize: 16),
                                 ),
                                 Text(
-                                  _formatDate(chat.dateTime),
+                                  formatDate(chat.dateTime),
                                   style: const TextStyle(
                                       color: Color.fromARGB(255, 83, 83, 83),
                                       fontSize: 12),
