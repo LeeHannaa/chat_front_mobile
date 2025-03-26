@@ -9,8 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:chat_application/model/model_message.dart';
 
-// TODO : 채팅리스트에서도, 매물 상세보기 페이지에서도 채팅방으로 입장 시 id를 못찾고 카산드라 db에 null 값으로 저장되고 있음,  채팅창 한번 더 클릭해야 ui 업데이트되는 오류
-
 class ChatPage extends StatefulWidget {
   const ChatPage(
       {super.key,
@@ -27,6 +25,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final ScrollController chatInputScrollController = ScrollController();
+  final FocusNode messageFocusNode = FocusNode();
   final TextEditingController messageController = TextEditingController();
   // late StompClient stompClient;
   bool isBtActive = false;
@@ -38,6 +37,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   int? roomId;
+  late List<Message> messages;
 
   late StompClient stompClient;
   void connect() {
@@ -52,7 +52,13 @@ class _ChatPageState extends State<ChatPage> {
               destination: '/topic/chatroom/$roomId',
               callback: (StompFrame frame) {
                 if (frame.body != null) {
-                  log("Received: ${frame.body}");
+                  log("Received: type of ${frame.body}");
+                  setState(() {
+                    final parsedMessage =
+                        jsonDecode(frame.body!) as Map<String, dynamic>;
+                    final receivedChat = Message.fromJson(parsedMessage);
+                    messages.add(receivedChat);
+                  });
                 }
               },
             );
@@ -70,26 +76,6 @@ class _ChatPageState extends State<ChatPage> {
   void disconnect() {
     stompClient.deactivate();
   }
-
-  final List<Message> allMessages = [
-    // Message(
-    //   id: 1,
-    //   name: "이한나",
-    //   writerId: 4,
-    //   message: "매물 문의드립니다.",
-    //   roomId: 2,
-    //   createTime: "2025-03-11 14:30:00",
-    // ),
-    // Message(
-    //   id: 2,
-    //   name: "VIP부동산",
-    //   writerId: 2,
-    //   message: "안녕하세요~ VIP부동산입니다. 어떤 궁금한 점이 있으신가요?",
-    //   roomId: 2,
-    //   createTime: "2025-03-11 14:32:00",
-    // ),
-  ];
-  late List<Message> messages;
 
   // 채팅 방 id를 넘기는 api
   Future<void> fetchData() async {
@@ -115,8 +101,11 @@ class _ChatPageState extends State<ChatPage> {
       if (roomId == null) {
         roomId = (messageList[0]['roomId']);
       } else {
-        messages =
-            messageList.map<Message>((json) => Message.fromJson(json)).toList();
+        setState(() {
+          messages = messageList
+              .map<Message>((json) => Message.fromJson(json))
+              .toList();
+        });
       }
       connect(); // 웹소켓 연결
 
@@ -155,11 +144,7 @@ class _ChatPageState extends State<ChatPage> {
         this.isBtActive = isBtActive;
       });
     });
-    messages =
-        allMessages.where((message) => message.roomId == widget.id).toList();
-    if (messages.isEmpty) {
-      messages = [];
-    }
+    messages = [];
   }
 
   @override
@@ -295,6 +280,7 @@ class _ChatPageState extends State<ChatPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: TextFormField(
                         controller: messageController,
+                        focusNode: messageFocusNode,
                         textInputAction: TextInputAction.send,
                         onFieldSubmitted: (value) => _sendMessage(),
                         maxLines: 4,
@@ -353,6 +339,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         isBtActive = false;
       });
+      messageFocusNode.requestFocus();
     }
   }
 }
