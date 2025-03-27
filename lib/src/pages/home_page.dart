@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
 
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 
-import 'apis/userApi.dart';
-import 'model/model_apt.dart';
-import './src/data/keyData.dart';
+import '../../../../apis/userApi.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});

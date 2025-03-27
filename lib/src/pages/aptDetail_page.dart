@@ -6,7 +6,8 @@ import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
-import 'src/widgets.dart';
+import '../component/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -28,8 +29,10 @@ class _AptDetailPageState extends State<AptDetailPage> {
 
   Apt? _apt;
   Future<void> fetchData() async {
-    final response = await http
-        .get(Uri.parse('http://localhost:8080/apt/detail/${widget.aptId}'));
+    final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
+
+    final response =
+        await http.get(Uri.parse('$apiAddress/apt/detail/${widget.aptId}'));
 
     if (response.statusCode == 200) {
       setState(() {

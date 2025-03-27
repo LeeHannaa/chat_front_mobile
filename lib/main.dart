@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:chat_application/aptDetail_page.dart';
+import 'package:chat_application/src/pages/aptDetail_page.dart';
 
-import 'chat_page.dart';
-import 'chatlist_page.dart';
-import 'aptlist_page.dart';
-import 'home_page.dart';
+import 'src/pages/chat_page.dart';
+import 'src/pages/chatlist_page.dart';
+import 'src/pages/aptlist_page.dart';
+import 'src/pages/home_page.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

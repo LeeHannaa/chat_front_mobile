@@ -3,11 +3,12 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
-import 'model/model_apt.dart';
-import './src/data/keyData.dart';
+import '../../model/model_apt.dart';
+import '../data/keyData.dart';
 
 class AptListPage extends StatefulWidget {
   const AptListPage({super.key, required this.title});
@@ -28,7 +29,8 @@ class _AptListPageState extends State<AptListPage> {
 
   late List<Apt> _apts = [];
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/apt'));
+    final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
+    final response = await http.get(Uri.parse('$apiAddress/apt'));
 
     if (response.statusCode == 200) {
       // JSON 형식의 응답을 Dart 객체로 변환하여 데이터 리스트에 저장

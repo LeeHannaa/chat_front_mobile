@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
+final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
 Future<Map<String, dynamic>> fetchUserInfo(int myId) async {
   try {
-    final url = Uri.parse('http://localhost:8080/user/info?myId=$myId');
+    final url = Uri.parse('$apiAddress/user/info?myId=$myId');
 
     final response = await http.get(
       url,

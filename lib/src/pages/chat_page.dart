@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:chat_application/src/component/chatPage/chatBoxComponent.dart';
 import 'package:chat_application/src/component/chatPage/chatInputField.dart';
 import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:chat_application/model/model_message.dart';
-import './src/format/formatDate.dart';
-import 'apis/chatApi.dart';
+import '../../apis/chatApi.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage(
@@ -45,7 +45,8 @@ class _ChatPageState extends State<ChatPage> {
   void connect() {
     stompClient = StompClient(
       config: StompConfig(
-        url: 'ws://localhost:8080/ws-stomp',
+        // url: 'ws://localhost:8080/ws-stomp',
+        url: 'ws://10.0.2.2:8080/ws-stomp',
         onConnect: (StompFrame frame) {
           log('Connected to WebSocket');
           if (roomId != null) {
@@ -144,72 +145,12 @@ class _ChatPageState extends State<ChatPage> {
                 controller: chatInputScrollController,
                 itemBuilder: (context, index) => Align(
                   alignment: Alignment.centerLeft,
-                  child: Column(
-                    children: [
-                      messages[index].writerId != myId
-                          ? Row(
-                              children: [
-                                const CircleAvatar(
-                                  radius: 18, // 동그라미 아이콘 크기 조정
-                                  backgroundColor: Colors.blue, // 아이콘 배경색
-                                  child: Icon(
-                                    Icons.person, // 사람 아이콘
-                                    color: Colors.white, // 아이콘 색상
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  messages[index].name, // 메시지를 보낸 사람
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : const Row(),
-                      Align(
-                        alignment: messages[index].writerId != myId
-                            ? Alignment.centerLeft
-                            : Alignment.centerRight,
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            maxWidth: 300,
-                          ),
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: messages[index].writerId != myId
-                                ? const Color.fromARGB(255, 218, 232, 217)
-                                : const Color.fromARGB(
-                                    255, 239, 243, 226), // 메시지 박스 배경 색
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4), // 이름과 메시지 간의 간격
-                              Text(
-                                messages[index].message, // 메시지 내용
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 8), // 메시지와 시간 간의 간격
-                              Text(
-                                formatDate(
-                                    messages[index].createTime), // 메시지 시간
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: ChatBox(
+                    myId: myId!,
+                    writerId: messages[index].writerId,
+                    writerName: messages[index].name,
+                    message: messages[index].message,
+                    createTime: messages[index].createTime,
                   ),
                 ),
                 itemCount: messages.length,

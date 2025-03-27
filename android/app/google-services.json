@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "719901432582",
+    "project_id": "ddhouse-chat",
+    "storage_bucket": "ddhouse-chat.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:719901432582:android:b8a40cdc07f34bff171c87",
+        "android_client_info": {
+          "package_name": "com.ddhouse.chat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAeh6Dp4WetyhKknO4AGQ4VBLxhq_X2HA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:719901432582:android:88c73482990e9eb1171c87",
+        "android_client_info": {
+          "package_name": "com.example.chat_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAeh6Dp4WetyhKknO4AGQ4VBLxhq_X2HA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
