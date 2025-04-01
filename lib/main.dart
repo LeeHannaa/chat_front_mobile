@@ -1,8 +1,11 @@
+import 'package:chat_application/src/providers/chatMessage_provider.dart';
+import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:chat_application/src/pages/aptDetail_page.dart';
+import 'package:provider/provider.dart';
 
 import 'src/pages/chat_page.dart';
 import 'src/pages/chatlist_page.dart';
@@ -11,7 +14,15 @@ import 'src/pages/home_page.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChatmessageProvider()),
+        ChangeNotifierProvider(create: (_) => ChatRoomProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 final _router = GoRouter(

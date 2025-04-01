@@ -28,4 +28,24 @@ class Message {
         message: json['msg'],
         createTime: DateTime.parse(json['createdDate']));
   }
+
+  factory Message.fromJsonSqlite(Map<String, dynamic> json) {
+    return Message(
+        id: json['id'],
+        name: json['name'],
+        writerId: json['writerId'],
+        roomId: json['roomId'],
+        message: json['message'],
+        createTime: DateTime.parse(json['createTime']));
+  }
+
+  // 객체 데이터를 데이터베이스에 저장할 수 있는 형태로 변환
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "name": name,
+        "writerId": writerId,
+        "roomId": roomId,
+        "message": message,
+        "createTime": createTime.toIso8601String(),
+      };
 }

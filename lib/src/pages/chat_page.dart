@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:chat_application/model/model_chatroom.dart';
+import 'package:chat_application/src/providers/chatMessage_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'package:chat_application/src/component/chatPage/chatBoxComponent.dart';
 import 'package:chat_application/src/component/chatPage/chatInputField.dart';
 import 'package:chat_application/src/data/keyData.dart';
+import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -61,6 +65,9 @@ class _ChatPageState extends State<ChatPage> {
                         jsonDecode(frame.body!) as Map<String, dynamic>;
                     final receivedChat = Message.fromJson(parsedMessage);
                     messages.add(receivedChat);
+                    // sqlite에 저장
+                    Provider.of<ChatmessageProvider>(context, listen: false)
+                        .addChatMessages(receivedChat);
                   });
                   moveScroll(chatInputScrollController);
                 }
@@ -86,7 +93,16 @@ class _ChatPageState extends State<ChatPage> {
     var messageList = [];
     if (widget.from == 'chatlist') {
       roomId = widget.id;
-      messageList = await fetchChatsByRoom(roomId!);
+      // TODO : 타입 통일 -> Provider로 가져온 것은 에러뜸!!!
+      try {
+        messageList = await fetchChatsByRoom(roomId!, context); // List 형태
+      } catch (e) {
+        // sqlite에서 데이터 가져오기
+        messageList =
+            await Provider.of<ChatmessageProvider>(context, listen: false)
+                .loadChatMessages(roomId!);
+        log('Error loading chat rooms: $e');
+      }
     } else {
       messageList = await fetchChatsByApt(myId!, widget.id);
       roomId = (messageList[0]['roomId']);
@@ -98,6 +114,20 @@ class _ChatPageState extends State<ChatPage> {
             messageList.map<Message>((json) => Message.fromJson(json)).toList();
       });
       moveScroll(chatInputScrollController);
+    } else {
+      // 처음 방 생성
+      if (roomId != null) {
+        final newChatRoom = ChatRoom(
+          id: roomId!,
+          name: messageList[0]['roomName'],
+          lastmsg: '',
+          dateTime: DateTime.parse(messageList[0]['regDate']),
+          num: messageList[0]['memberNum'],
+        );
+        // sqlite에 저장
+        Provider.of<ChatRoomProvider>(context, listen: false)
+            .addChatRoom(newChatRoom);
+      }
     }
   }
 
@@ -118,6 +148,8 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     messageController.dispose();
     chatInputScrollController.dispose();
+    messageFocusNode.dispose();
+    stompClient.deactivate();
     super.dispose();
   }
 

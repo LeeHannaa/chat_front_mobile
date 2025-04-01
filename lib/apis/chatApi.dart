@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:chat_application/src/providers/chatMessage_provider.dart';
+import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../model/model_chatroom.dart';
 
 final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
@@ -18,11 +22,11 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
     return chatRooms;
   } else {
     log('Failed to load data: ${response.statusCode}');
-    throw Exception('Failed to load chat rooms');
+    throw Exception('Failed to load chatRoom');
   }
 }
 
-Future<List> fetchChatsByRoom(int roomId) async {
+Future<List> fetchChatsByRoom(int roomId, BuildContext context) async {
   log("chatlist에서 옴!!! roomId : $roomId");
   final response =
       await http.get(Uri.parse('$apiAddress/chatmsg/find/list/$roomId'));

@@ -1,8 +1,10 @@
 import 'dart:developer';
 
 import 'package:chat_application/src/data/keyData.dart';
+import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../apis/chatApi.dart';
 import '../../model/model_chatroom.dart';
@@ -26,21 +28,23 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   Future<void> _loadChatRooms() async {
+    var chatRooms;
     await _loadMyId();
     try {
-      final chatRooms = await fetchChatRooms(myId!);
-      setState(() {
-        _data = chatRooms;
-      });
+      chatRooms = await fetchChatRooms(myId!);
     } catch (e) {
+      chatRooms = await Provider.of<ChatRoomProvider>(context, listen: false)
+          .loadChatRooms();
       log('Error loading chat rooms: $e');
     }
+    setState(() {
+      _data = chatRooms;
+    });
   }
 
   @override
   void initState() {
     super.initState();
-
     _loadChatRooms();
   }
 
