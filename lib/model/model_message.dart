@@ -21,12 +21,15 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-        id: json['id'],
-        name: json['writerName'],
-        writerId: json['writerId'],
-        roomId: json['roomId'],
-        message: json['msg'],
-        createTime: DateTime.parse(json['createdDate']));
+      id: json['id'] ?? '',
+      name: json['writerName'] ?? 'Unknown',
+      writerId: json['writerId'] ?? 0,
+      roomId: json['roomId'] ?? 0,
+      message: json['msg'] ?? '',
+      createTime: json['createTime'] != null
+          ? DateTime.parse(json['createTime'])
+          : DateTime.now(),
+    );
   }
 
   factory Message.fromJsonSqlite(Map<String, dynamic> json) {

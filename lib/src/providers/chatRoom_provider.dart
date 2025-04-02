@@ -22,8 +22,12 @@ class ChatRoomProvider with ChangeNotifier {
     await loadChatRooms();
   }
 
-  Future<void> removeChatRoom(int id) async {
-    await DatabaseHelper().deleteChatRoom(id);
+  Future<void> updateLastMessages() async {
+    await DatabaseHelper().updateLastMessages();
+  }
+
+  Future<void> removeChatRoom(int roomId) async {
+    await DatabaseHelper().deleteChatRoomAndMessages(roomId);
     // await loadChatRooms();
   }
 }

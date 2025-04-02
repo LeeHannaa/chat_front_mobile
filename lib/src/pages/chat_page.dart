@@ -63,6 +63,7 @@ class _ChatPageState extends State<ChatPage> {
                   setState(() {
                     final parsedMessage =
                         jsonDecode(frame.body!) as Map<String, dynamic>;
+                    log("parsedMessage 확인 : $parsedMessage");
                     final receivedChat = Message.fromJson(parsedMessage);
                     messages.add(receivedChat);
                     // sqlite에 저장
@@ -91,9 +92,9 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> fetchChatsData() async {
     await _loadMyIdAndMyName();
     var messageList = [];
+    bool connectServer = true;
     if (widget.from == 'chatlist') {
       roomId = widget.id;
-      // TODO : 타입 통일 -> Provider로 가져온 것은 에러뜸!!!
       try {
         messageList = await fetchChatsByRoom(roomId!, context); // List 형태
       } catch (e) {
@@ -101,6 +102,7 @@ class _ChatPageState extends State<ChatPage> {
         messageList =
             await Provider.of<ChatmessageProvider>(context, listen: false)
                 .loadChatMessages(roomId!);
+        connectServer = false;
         log('Error loading chat rooms: $e');
       }
     } else {
@@ -110,8 +112,17 @@ class _ChatPageState extends State<ChatPage> {
     connect(); // 웹소켓 연결
     if (messageList[0]['id'] != null) {
       setState(() {
-        messages =
-            messageList.map<Message>((json) => Message.fromJson(json)).toList();
+        if (connectServer) {
+          // api 연결로 받아온 경우
+          messages = messageList
+              .map<Message>((json) => Message.fromJson(json))
+              .toList();
+        } else {
+          // 어플리케이션 내에 db에서 꺼내온 경우
+          messages = messageList
+              .map<Message>((json) => Message.fromJsonSqlite(json))
+              .toList();
+        }
       });
       moveScroll(chatInputScrollController);
     } else {
@@ -160,9 +171,13 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         title: Text(widget.chatName),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // sqlite에서 lastmsg 데이터 업뎃
+              Provider.of<ChatRoomProvider>(context, listen: false)
+                  .updateLastMessages();
+              context.pop();
+            }),
       ),
       body: Column(
         children: <Widget>[

@@ -57,3 +57,14 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
     throw Exception('Failed to load chats');
   }
 }
+
+Future<void> deleteChatRoom(int roomId) async {
+  log("$roomId 채팅방 삭제하기");
+  final response =
+      await http.delete(Uri.parse('$apiAddress/chat/delete/$roomId'));
+  if (response.statusCode == 200) {
+    log(response.body);
+  } else {
+    throw Exception('Failed to delete chatRoom');
+  }
+}

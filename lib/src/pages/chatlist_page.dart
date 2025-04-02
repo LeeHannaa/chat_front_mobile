@@ -74,7 +74,7 @@ class _ChatListPageState extends State<ChatListPage> {
             itemBuilder: (context, index) {
               final chat = _data[index];
               return RoomBox(
-                chatId: chat.id,
+                chatRoomId: chat.id,
                 chatName: chat.name,
                 lastMsg: chat.lastmsg,
                 index: index,

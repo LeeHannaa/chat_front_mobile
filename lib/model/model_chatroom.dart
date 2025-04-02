@@ -37,9 +37,7 @@ class ChatRoom {
     return ChatRoom(
         id: json['id'],
         name: json['name'],
-        lastmsg: '',
-        // counselId: json['counselId'],
-        // consultId: json['consultId'],
+        lastmsg: json['lastmsg'] ?? '',
         num: json['num'],
         dateTime: DateTime.parse(json['dateTime']));
   }

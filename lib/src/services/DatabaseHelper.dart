@@ -81,13 +81,42 @@ class DatabaseHelper {
     return await db.insert('chatRoom', chatRoom.toMap());
   }
 
-  Future<int> deleteChatRoom(int id) async {
+  Future<void> deleteChatRoomAndMessages(int roomId) async {
     final db = await database;
-    return await db.delete(
+
+    // 1. chatMessage 테이블에서 해당 roomId에 해당하는 모든 메시지 삭제
+    await db.delete(
+      'chatMessage',
+      where: 'roomId = ?',
+      whereArgs: [roomId],
+    );
+
+    // 2. chatRoom 테이블에서 해당 roomId에 해당하는 레코드 삭제
+    await db.delete(
       'chatRoom',
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [roomId],
     );
+    print("해당 채팅방 삭제 완료!");
+  }
+
+  Future<void> updateLastMessages() async {
+    final db = await database;
+    await db.rawUpdate('''
+    UPDATE chatRoom
+    SET lastmsg = (
+        SELECT message 
+        FROM chatMessage 
+        WHERE chatMessage.roomId = chatRoom.id 
+        ORDER BY createTime DESC 
+        LIMIT 1
+    )
+    WHERE EXISTS (
+        SELECT 1 
+        FROM chatMessage 
+        WHERE chatMessage.roomId = chatRoom.id
+    );
+  ''');
   }
 
   // Future<List<Message>> getChatMessages() async {
@@ -99,15 +128,16 @@ class DatabaseHelper {
   //   return list;
   // }
 
-  Future<List<Message>> getChatMessagesByRoomId(int roomId) async {
+  Future<List> getChatMessagesByRoomId(int roomId) async {
     final db = await database;
     var res = await db.query(
       'chatMessage',
       where: 'roomId = ?',
       whereArgs: [roomId], // roomId를 조건으로 사용
     );
-    List<Message> list = res.isNotEmpty
-        ? res.map((c) => Message.fromJsonSqlite(c)).toList()
+    // print("Database Query Result: $res");
+    List<Map<String, dynamic>> list = res.isNotEmpty
+        ? res.map((c) => Message.fromJsonSqlite(c).toMap()).toList()
         : [];
     return list;
   }
