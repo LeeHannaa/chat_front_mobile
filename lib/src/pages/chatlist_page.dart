@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_application/src/data/keyData.dart';
@@ -5,6 +6,7 @@ import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 import '../../apis/chatApi.dart';
 import '../../model/model_chatroom.dart';
@@ -42,10 +44,57 @@ class _ChatListPageState extends State<ChatListPage> {
     });
   }
 
+  late StompClient stompClient;
+  void connect() {
+    stompClient = StompClient(
+      config: StompConfig(
+        // url: 'ws://localhost:8080/ws-stomp',
+        url: 'ws://10.0.2.2:8080/ws-stomp',
+        onConnect: (StompFrame frame) {
+          log('Connected to WebSocket');
+          if (myId != null) {
+            // 메시지 구독
+            stompClient.subscribe(
+              destination: '/topic/chatlist/$myId', // 받는 사람이 myId인 경우 구독
+              callback: (StompFrame frame) {
+                if (frame.body != null) {
+                  final parsedData =
+                      jsonDecode(frame.body!) as Map<String, dynamic>;
+                  log("새로운 채팅 목록 업데이트 데이터: $parsedData");
+
+                  setState(() {
+                    int index = _data
+                        .indexWhere((chat) => chat.id == parsedData['roomId']);
+                    if (index != -1) {
+                      _data[index] = _data[index].copyWith(
+                        lastmsg: parsedData['msg'],
+                        dateTime: DateTime.parse(parsedData['regDate']),
+                      );
+                    }
+                  });
+                }
+              },
+            );
+          }
+        },
+        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
+        onDisconnect: (StompFrame frame) => log('Disconnected'),
+      ),
+    );
+
+    // WebSocket 연결 시작
+    stompClient.activate();
+  }
+
+  void disconnect() {
+    stompClient.deactivate();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadChatRooms();
+    connect();
   }
 
   bool isLoading = false;
@@ -54,6 +103,7 @@ class _ChatListPageState extends State<ChatListPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+    disconnect();
   }
 
   @override
@@ -77,7 +127,6 @@ class _ChatListPageState extends State<ChatListPage> {
                 chatRoomId: chat.id,
                 chatName: chat.name,
                 lastMsg: chat.lastmsg,
-                index: index,
                 chatNum: chat.num,
                 createTime: chat.dateTime,
               );

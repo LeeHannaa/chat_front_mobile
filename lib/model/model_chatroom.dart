@@ -50,4 +50,17 @@ class ChatRoom {
         "num": num,
         "dateTime": dateTime.toIso8601String(),
       };
+
+  ChatRoom copyWith({
+    String? lastmsg,
+    DateTime? dateTime,
+  }) {
+    return ChatRoom(
+      id: id,
+      name: name,
+      lastmsg: lastmsg ?? this.lastmsg,
+      num: num,
+      dateTime: dateTime ?? this.dateTime,
+    );
+  }
 }

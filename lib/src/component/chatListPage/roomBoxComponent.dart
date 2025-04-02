@@ -10,7 +10,6 @@ class RoomBox extends StatefulWidget {
   final int chatRoomId;
   final String chatName;
   final String lastMsg;
-  final int index;
   final int chatNum;
   final DateTime createTime;
 
@@ -19,7 +18,6 @@ class RoomBox extends StatefulWidget {
     required this.chatRoomId,
     required this.chatName,
     required this.lastMsg,
-    required this.index,
     required this.chatNum,
     required this.createTime,
   }) : super(key: key);
@@ -33,7 +31,6 @@ class _RoomBoxState extends State<RoomBox> {
     await Provider.of<ChatRoomProvider>(context, listen: false)
         .removeChatRoom(roomId);
     deleteChatRoom(roomId);
-    // TODO : 추후에 서버 db에서도 해당 사용자에 대한 채팅방 삭제 및 데이터 삭제 (아마 현재 방에 남아있는 사용자의 수를 체크한 후 0인 경우 지우면 될듯!!! 이거 지금!!!)
   }
 
   @override
