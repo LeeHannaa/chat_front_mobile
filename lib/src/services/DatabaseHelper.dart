@@ -5,7 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static const _databaseName = "chatService.db";
-  static const _databaseVersion = 5;
+  static const _databaseVersion = 6;
 
   // DatabaseHelper를 싱글턴으로 하여 데이터베이스 인스턴스가
   // 한번만 초기화 되도록함
@@ -37,16 +37,14 @@ class DatabaseHelper {
   }
 
   Future _onCreate(Database db, int version) async {
-    await db.execute('DROP TABLE IF EXISTS chatMessage');
-    await db.execute('DROP TABLE IF EXISTS chatRoom');
-
     await db.execute('''
           CREATE TABLE chatRoom (
             id INTEGER NOT NULL PRIMARY KEY UNIQUE,
             name TEXT NOT NULL,
             lastmsg TEXT NOT NULL,
             num INTEGER NOT NULL,
-            dateTime TEXT NOT NULL
+            dateTime TEXT NOT NULL,
+            updateLastMsgTime TEXT NOT NULL
           );
         ''');
     await db.execute('''

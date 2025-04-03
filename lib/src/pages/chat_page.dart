@@ -134,6 +134,8 @@ class _ChatPageState extends State<ChatPage> {
           lastmsg: '',
           dateTime: DateTime.parse(messageList[0]['regDate']),
           num: messageList[0]['memberNum'],
+          updateLastMsgTime:
+              DateTime.parse(messageList[0]['updateLastMsgTime']),
         );
         // sqlite에 저장
         Provider.of<ChatRoomProvider>(context, listen: false)

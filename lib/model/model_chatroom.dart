@@ -7,6 +7,7 @@ class ChatRoom {
     // required this.consultId,
     required this.num,
     required this.dateTime,
+    required this.updateLastMsgTime,
   });
   final int id;
   final String name;
@@ -15,6 +16,7 @@ class ChatRoom {
   // final int consultId; // 매물 소유자
   final int num;
   final DateTime dateTime;
+  final DateTime updateLastMsgTime;
 
   @override
   String toString() {
@@ -27,10 +29,9 @@ class ChatRoom {
         id: json['id'],
         name: json['name'],
         lastmsg: json['lastMsg'] ?? '',
-        // counselId: json['counselId'],
-        // consultId: json['consultId'],
         num: json['memberNum'],
-        dateTime: DateTime.parse(json['regDate']));
+        dateTime: DateTime.parse(json['regDate']),
+        updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']));
   }
 
   factory ChatRoom.fromJsonSqlite(Map<String, dynamic> json) {
@@ -39,7 +40,8 @@ class ChatRoom {
         name: json['name'],
         lastmsg: json['lastmsg'] ?? '',
         num: json['num'],
-        dateTime: DateTime.parse(json['dateTime']));
+        dateTime: DateTime.parse(json['dateTime']),
+        updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']));
   }
 
   // 객체 데이터를 데이터베이스에 저장할 수 있는 형태로 변환
@@ -49,18 +51,19 @@ class ChatRoom {
         "lastmsg": lastmsg,
         "num": num,
         "dateTime": dateTime.toIso8601String(),
+        "updateLastMsgTime": updateLastMsgTime.toIso8601String(),
       };
 
   ChatRoom copyWith({
     String? lastmsg,
-    DateTime? dateTime,
+    DateTime? updateLastMsgTime,
   }) {
     return ChatRoom(
-      id: id,
-      name: name,
-      lastmsg: lastmsg ?? this.lastmsg,
-      num: num,
-      dateTime: dateTime ?? this.dateTime,
-    );
+        id: id,
+        name: name,
+        lastmsg: lastmsg ?? this.lastmsg,
+        num: num,
+        dateTime: dateTime,
+        updateLastMsgTime: updateLastMsgTime ?? this.updateLastMsgTime);
   }
 }

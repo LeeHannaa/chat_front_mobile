@@ -68,9 +68,13 @@ class _ChatListPageState extends State<ChatListPage> {
                     if (index != -1) {
                       _data[index] = _data[index].copyWith(
                         lastmsg: parsedData['msg'],
-                        dateTime: DateTime.parse(parsedData['regDate']),
+                        updateLastMsgTime:
+                            DateTime.parse(parsedData['updateLastMsgTime']),
                       );
                     }
+                    _data = List.from(_data)
+                      ..sort((a, b) =>
+                          b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
                   });
                 }
               },
@@ -124,11 +128,13 @@ class _ChatListPageState extends State<ChatListPage> {
             itemBuilder: (context, index) {
               final chat = _data[index];
               return RoomBox(
+                key: ValueKey(chat.updateLastMsgTime),
                 chatRoomId: chat.id,
                 chatName: chat.name,
                 lastMsg: chat.lastmsg,
                 chatNum: chat.num,
                 createTime: chat.dateTime,
+                updateLastMsgTime: chat.updateLastMsgTime,
               );
             },
           ),

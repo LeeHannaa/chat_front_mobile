@@ -12,6 +12,7 @@ class RoomBox extends StatefulWidget {
   final String lastMsg;
   final int chatNum;
   final DateTime createTime;
+  final DateTime updateLastMsgTime;
 
   const RoomBox({
     Key? key,
@@ -20,6 +21,7 @@ class RoomBox extends StatefulWidget {
     required this.lastMsg,
     required this.chatNum,
     required this.createTime,
+    required this.updateLastMsgTime,
   }) : super(key: key);
 
   @override
@@ -89,7 +91,7 @@ class _RoomBoxState extends State<RoomBox> {
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         Text(
-                          formatDate(widget.createTime),
+                          formatDate(widget.updateLastMsgTime),
                           style: const TextStyle(
                               color: Color.fromARGB(255, 83, 83, 83),
                               fontSize: 12),

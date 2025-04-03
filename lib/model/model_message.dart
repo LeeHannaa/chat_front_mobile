@@ -26,8 +26,8 @@ class Message {
       writerId: json['writerId'] ?? 0,
       roomId: json['roomId'] ?? 0,
       message: json['msg'] ?? '',
-      createTime: json['createTime'] != null
-          ? DateTime.parse(json['createTime'])
+      createTime: json['createdDate'] != null
+          ? DateTime.parse(json['createdDate'])
           : DateTime.now(),
     );
   }
