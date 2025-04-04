@@ -1,3 +1,5 @@
+import 'package:chat_application/fcmAlram.dart';
+import 'package:chat_application/firebase_config.dart';
 import 'package:chat_application/src/providers/chatMessage_provider.dart';
 import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,17 +11,14 @@ import 'package:provider/provider.dart';
 
 import 'router.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('백그라운드에서 메시지 수신: ${message.messageId}');
-}
-
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await initLocalNotification();
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  onMessageListener();
 
   runApp(
     MultiProvider(

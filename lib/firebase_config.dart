@@ -1,4 +1,6 @@
 import 'package:chat_application/apis/userApi.dart';
+import 'package:chat_application/fcmAlram.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
@@ -41,11 +43,20 @@ Future<void> requestForToken(int? myId) async {
 // 메시지 리스너
 void onMessageListener() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Got a message whilst in the foreground!');
+    print('Message data: ${message.data}');
     print(
         'FCM 메시지 수신: ${message.notification?.title} - ${message.notification?.body}');
+    showLocalNotification(message);
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     print('사용자가 알림을 클릭하여 앱을 열었습니다: ${message.notification?.title}');
   });
+}
+
+// 백그라운드 메시지 알림 처리
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('백그라운드에서 메시지 수신: ${message.messageId}');
 }

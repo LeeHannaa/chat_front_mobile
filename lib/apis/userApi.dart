@@ -27,7 +27,7 @@ Future<Map<String, dynamic>> fetchUserInfo(int myId) async {
 }
 
 Future<void> sendFcmToken(int myId, String fcmToken) async {
-  final url = Uri.parse('$apiAddress/user/token');
+  final url = Uri.parse('$apiAddress/fcmtoken/save');
 
   final response = await http.post(
     url,

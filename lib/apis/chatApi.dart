@@ -13,7 +13,7 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
     final List<dynamic> jsonData = json.decode(response.body);
     final List<ChatRoom> chatRooms =
         jsonData.map((json) => ChatRoom.fromJson(json)).toList();
-    chatRooms.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    chatRooms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     log(response.body);
     return chatRooms;
