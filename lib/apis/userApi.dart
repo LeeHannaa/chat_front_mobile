@@ -25,3 +25,19 @@ Future<Map<String, dynamic>> fetchUserInfo(int myId) async {
     rethrow;
   }
 }
+
+Future<void> sendFcmToken(int myId, String fcmToken) async {
+  final url = Uri.parse('$apiAddress/user/token');
+
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'userId': myId, 'fcmToken': fcmToken}),
+  );
+
+  if (response.statusCode == 200) {
+    print("FCM 토큰 등록 성공");
+  } else {
+    print("FCM 토큰 등록 실패: ${response.body}");
+  }
+}

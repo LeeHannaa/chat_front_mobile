@@ -30,7 +30,7 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   Future<void> _loadChatRooms() async {
-    var chatRooms;
+    List<ChatRoom> chatRooms;
     await _loadMyId();
     try {
       chatRooms = await fetchChatRooms(myId!);

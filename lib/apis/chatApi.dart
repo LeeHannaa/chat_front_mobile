@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:chat_application/src/providers/chatMessage_provider.dart';
-import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import '../model/model_chatroom.dart';
 
 final apiAddress = dotenv.get('API_ANDROID_ADDRESS');

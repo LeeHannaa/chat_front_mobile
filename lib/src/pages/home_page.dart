@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:chat_application/firebase_config.dart';
 import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
@@ -117,6 +118,12 @@ class _HomePageState extends State<HomePage> {
                   child: const Text('불러오기'),
                 ),
               ],
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await requestForToken(myId);
+              },
+              child: Text('FCM 토큰 받기'),
             ),
             const SizedBox(height: 20),
             (myId != null && myName != null)
