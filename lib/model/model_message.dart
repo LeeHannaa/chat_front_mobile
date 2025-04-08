@@ -7,6 +7,7 @@ class Message {
     required this.roomId,
     this.count,
     required this.createTime,
+    this.isRead = true,
   });
   final String id;
   final String name;
@@ -15,6 +16,7 @@ class Message {
   final int roomId;
   final int? count;
   final DateTime createTime;
+  bool? isRead;
 
   @override
   String toString() {
@@ -32,6 +34,7 @@ class Message {
       createTime: json['createdDate'] != null
           ? DateTime.parse(json['createdDate'])
           : DateTime.now(),
+      isRead: json['isRead'] ?? true,
     );
   }
 

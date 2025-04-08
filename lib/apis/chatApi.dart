@@ -55,6 +55,20 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
   }
 }
 
+Future<int> fetchUnreadCountByRoom(int roomId) async {
+  final response =
+      await http.get(Uri.parse('$apiAddress/chat/unread/count?roomId=$roomId'));
+
+  if (response.statusCode == 200) {
+    log(response.body);
+    int unreadCount = int.parse(response.body);
+    return unreadCount;
+  } else {
+    log('Failed to load data: ${response.statusCode}');
+    throw Exception('Failed to load unreadCount by chatRoom');
+  }
+}
+
 Future<void> deleteChatRoom(int roomId) async {
   log("$roomId 채팅방 삭제하기");
   final response =

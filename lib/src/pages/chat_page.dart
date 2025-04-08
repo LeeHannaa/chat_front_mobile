@@ -37,7 +37,6 @@ class _ChatPageState extends State<ChatPage> {
   bool isBtActive = false;
   int? myId;
   String? myName;
-  bool isAllRead = false;
 
   Future<void> _loadMyIdAndMyName() async {
     myId = await SharedPreferencesHelper.getMyId();
@@ -45,6 +44,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   int? roomId;
+  int? unreadCount; // 제일 처음 입장했을 때 상대가 안읽은 메시지 수
+  bool userInRoom = false;
   late List<Message> messages;
 
   late StompClient stompClient;
@@ -73,9 +74,11 @@ class _ChatPageState extends State<ChatPage> {
                     setState(() {
                       final receivedChat = Message.fromJson(messagePayload);
                       if (receivedChat.count! > 1) {
-                        isAllRead = true;
+                        userInRoom = true;
+                        receivedChat.isRead = true;
                       } else {
-                        isAllRead = false;
+                        userInRoom = false;
+                        receivedChat.isRead = false;
                       }
                       messages.add(receivedChat);
 
@@ -92,7 +95,19 @@ class _ChatPageState extends State<ChatPage> {
                   if (data['message'] == "상대방 입장") {
                     log("상대방 입장!!!!!!!");
                     setState(() {
-                      isAllRead = true;
+                      userInRoom = true;
+                      for (int i = messages.length - 1; i > 0; i--) {
+                        if (messages[i].isRead == true) break;
+                        messages[i].isRead = true;
+                      }
+                    });
+                  }
+                } else if (data['type'] == 'OUT') {
+                  // 누가 나갔다는 알림 메시지 처리
+                  if (data['message'] == "상대방 퇴장") {
+                    log("상대방 퇴장!!!!!!!");
+                    setState(() {
+                      userInRoom = false;
                     });
                   }
                 }
@@ -133,6 +148,8 @@ class _ChatPageState extends State<ChatPage> {
       messageList = await fetchChatsByApt(myId!, widget.id);
       roomId = (messageList[0]['roomId']);
     }
+    // 상대방이 안읽은 메시지 수 가져오기
+    unreadCount = await fetchUnreadCountByRoom(roomId!);
     connect(); // 웹소켓 연결
     if (messageList[0]['id'] != null) {
       setState(() {
@@ -148,6 +165,11 @@ class _ChatPageState extends State<ChatPage> {
               .toList();
         }
       });
+      for (int i = messages.length - 1;
+          i >= messages.length - unreadCount!;
+          i--) {
+        messages[i].isRead = false; // 안읽음 표시
+      }
       moveScroll(chatInputScrollController);
     } else {
       // 처음 방 생성
@@ -217,17 +239,20 @@ class _ChatPageState extends State<ChatPage> {
                 padding: const EdgeInsets.all(8.0),
                 shrinkWrap: true,
                 controller: chatInputScrollController,
-                itemBuilder: (context, index) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: ChatBox(
-                    myId: myId!,
-                    writerId: messages[index].writerId,
-                    writerName: messages[index].name,
-                    message: messages[index].message,
-                    createTime: messages[index].createTime,
-                    isAllRead: isAllRead,
-                  ),
-                ),
+                itemBuilder: (context, index) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: ChatBox(
+                      myId: myId!,
+                      writerId: messages[index].writerId,
+                      writerName: messages[index].name,
+                      message: messages[index].message,
+                      createTime: messages[index].createTime,
+                      isRead: messages[index].isRead ?? true,
+                      userInRoom: userInRoom,
+                    ),
+                  );
+                },
                 itemCount: messages.length,
               ),
             ),

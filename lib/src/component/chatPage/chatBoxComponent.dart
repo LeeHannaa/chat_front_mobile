@@ -8,7 +8,8 @@ class ChatBox extends StatefulWidget {
   final String writerName;
   final String message;
   final DateTime createTime;
-  final bool isAllRead;
+  final bool isRead;
+  final bool userInRoom;
 
   const ChatBox({
     Key? key,
@@ -17,7 +18,8 @@ class ChatBox extends StatefulWidget {
     required this.writerName,
     required this.message,
     required this.createTime,
-    required this.isAllRead,
+    required this.isRead, // 제일 처음 입장했을 때 상대가 안읽은 메시지 수
+    required this.userInRoom, // 현재 방에 접속자 발생 여부
   }) : super(key: key);
 
   @override
@@ -86,15 +88,23 @@ class _ChatBoxState extends State<ChatBox> {
                     color: Color.fromARGB(255, 79, 79, 79),
                   ),
                 ),
-                widget.writerId != widget.myId
-                    ? const SizedBox(height: 0)
-                    : Text(
-                        widget.isAllRead ? "읽음" : "안읽음",
-                        style: const TextStyle(
-                          fontSize: 9,
-                          color: Color.fromARGB(255, 100, 100, 100),
-                        ),
-                      )
+                widget.myId == widget.writerId
+                    ? widget.userInRoom
+                        ? const Text(
+                            "읽음",
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: Color.fromARGB(255, 134, 134, 134),
+                            ),
+                          )
+                        : Text(
+                            widget.isRead ? "읽음" : "안읽음",
+                            style: const TextStyle(
+                              fontSize: 8,
+                              color: Color.fromARGB(255, 134, 134, 134),
+                            ),
+                          )
+                    : const SizedBox(height: 0.1),
               ],
             ),
           ),

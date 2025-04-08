@@ -101,11 +101,6 @@ class _ChatListPageState extends State<ChatListPage> {
     connect();
   }
 
-  @override
-  void didPopNext() {
-    _loadChatRooms();
-  }
-
   bool isLoading = false;
 
   @override
