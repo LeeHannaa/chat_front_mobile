@@ -8,6 +8,7 @@ class ChatRoom {
     required this.num,
     required this.dateTime,
     required this.updateLastMsgTime,
+    this.unreadCount,
   });
   final int id;
   final String name;
@@ -17,6 +18,7 @@ class ChatRoom {
   final int num;
   final DateTime dateTime;
   final DateTime updateLastMsgTime;
+  final int? unreadCount;
 
   @override
   String toString() {
@@ -26,22 +28,25 @@ class ChatRoom {
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
     return ChatRoom(
-        id: json['id'],
-        name: json['name'],
-        lastmsg: json['lastMsg'] ?? '',
-        num: json['memberNum'],
-        dateTime: DateTime.parse(json['regDate']),
-        updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']));
+      id: json['id'],
+      name: json['name'],
+      lastmsg: json['lastMsg'] ?? '',
+      num: json['memberNum'],
+      dateTime: DateTime.parse(json['regDate']),
+      updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']),
+      unreadCount: json['unreadCount'],
+    );
   }
 
   factory ChatRoom.fromJsonSqlite(Map<String, dynamic> json) {
     return ChatRoom(
-        id: json['id'],
-        name: json['name'],
-        lastmsg: json['lastmsg'] ?? '',
-        num: json['num'],
-        dateTime: DateTime.parse(json['dateTime']),
-        updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']));
+      id: json['id'],
+      name: json['name'],
+      lastmsg: json['lastmsg'] ?? '',
+      num: json['num'],
+      dateTime: DateTime.parse(json['dateTime']),
+      updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']),
+    );
   }
 
   // 객체 데이터를 데이터베이스에 저장할 수 있는 형태로 변환
@@ -57,6 +62,7 @@ class ChatRoom {
   ChatRoom copyWith({
     String? lastmsg,
     DateTime? updateLastMsgTime,
+    int? unreadCount,
   }) {
     return ChatRoom(
         id: id,
@@ -64,6 +70,7 @@ class ChatRoom {
         lastmsg: lastmsg ?? this.lastmsg,
         num: num,
         dateTime: dateTime,
-        updateLastMsgTime: updateLastMsgTime ?? this.updateLastMsgTime);
+        updateLastMsgTime: updateLastMsgTime ?? this.updateLastMsgTime,
+        unreadCount: unreadCount ?? this.unreadCount);
   }
 }

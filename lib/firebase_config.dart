@@ -2,7 +2,6 @@ import 'package:chat_application/apis/userApi.dart';
 import 'package:chat_application/fcmAlram.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 
 // FCM 토큰 요청 함수
 Future<void> requestForToken(int? myId) async {
@@ -43,8 +42,6 @@ Future<void> requestForToken(int? myId) async {
 // 메시지 리스너
 void onMessageListener() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.data}');
     print(
         'FCM 메시지 수신: ${message.notification?.title} - ${message.notification?.body}');
     showLocalNotification(message);

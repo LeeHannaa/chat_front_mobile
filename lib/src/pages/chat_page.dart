@@ -37,6 +37,8 @@ class _ChatPageState extends State<ChatPage> {
   bool isBtActive = false;
   int? myId;
   String? myName;
+  bool isAllRead = false;
+
   Future<void> _loadMyIdAndMyName() async {
     myId = await SharedPreferencesHelper.getMyId();
     myName = await SharedPreferencesHelper.getMyName();
@@ -51,6 +53,10 @@ class _ChatPageState extends State<ChatPage> {
       config: StompConfig(
         // url: 'ws://localhost:8080/ws-stomp',
         url: 'ws://10.0.2.2:8080/ws-stomp',
+        stompConnectHeaders: {
+          'roomId': roomId!.toString(),
+          'myId': myId!.toString(),
+        },
         onConnect: (StompFrame frame) {
           log('Connected to WebSocket');
           if (roomId != null) {
@@ -58,19 +64,37 @@ class _ChatPageState extends State<ChatPage> {
             stompClient.subscribe(
               destination: '/topic/chatroom/$roomId',
               callback: (StompFrame frame) {
-                if (frame.body != null) {
-                  log("Received: type of ${frame.body}");
-                  setState(() {
-                    final parsedMessage =
-                        jsonDecode(frame.body!) as Map<String, dynamic>;
-                    log("parsedMessage 확인 : $parsedMessage");
-                    final receivedChat = Message.fromJson(parsedMessage);
-                    messages.add(receivedChat);
-                    // sqlite에 저장
-                    Provider.of<ChatmessageProvider>(context, listen: false)
-                        .addChatMessages(receivedChat);
-                  });
+                final data = jsonDecode(frame.body!);
+                log("Received: type of $data");
+                if (data['type'] == 'CHAT') {
+                  // 일반 채팅 메시지 처리
+                  final messagePayload = data['message'];
+                  if (messagePayload is Map<String, dynamic>) {
+                    setState(() {
+                      final receivedChat = Message.fromJson(messagePayload);
+                      if (receivedChat.count! > 1) {
+                        isAllRead = true;
+                      } else {
+                        isAllRead = false;
+                      }
+                      messages.add(receivedChat);
+
+                      // sqlite에 저장
+                      Provider.of<ChatmessageProvider>(context, listen: false)
+                          .addChatMessages(receivedChat);
+                    });
+                  } else {
+                    log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                  }
                   moveScroll(chatInputScrollController);
+                } else if (data['type'] == 'INFO') {
+                  // 누가 들어왔다는 알림 메시지 처리
+                  if (data['message'] == "상대방 입장") {
+                    log("상대방 입장!!!!!!!");
+                    setState(() {
+                      isAllRead = true;
+                    });
+                  }
                 }
               },
             );
@@ -163,6 +187,7 @@ class _ChatPageState extends State<ChatPage> {
     chatInputScrollController.dispose();
     messageFocusNode.dispose();
     stompClient.deactivate();
+    disconnect();
     super.dispose();
   }
 
@@ -200,6 +225,7 @@ class _ChatPageState extends State<ChatPage> {
                     writerName: messages[index].name,
                     message: messages[index].message,
                     createTime: messages[index].createTime,
+                    isAllRead: isAllRead,
                   ),
                 ),
                 itemCount: messages.length,

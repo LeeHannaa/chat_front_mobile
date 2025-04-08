@@ -5,6 +5,7 @@ class Message {
     required this.writerId,
     required this.message,
     required this.roomId,
+    this.count,
     required this.createTime,
   });
   final String id;
@@ -12,6 +13,7 @@ class Message {
   final int writerId;
   final String message;
   final int roomId;
+  final int? count;
   final DateTime createTime;
 
   @override
@@ -26,6 +28,7 @@ class Message {
       writerId: json['writerId'] ?? 0,
       roomId: json['roomId'] ?? 0,
       message: json['msg'] ?? '',
+      count: json['count'] ?? '',
       createTime: json['createdDate'] != null
           ? DateTime.parse(json['createdDate'])
           : DateTime.now(),

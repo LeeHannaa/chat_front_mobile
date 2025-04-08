@@ -8,6 +8,7 @@ class ChatBox extends StatefulWidget {
   final String writerName;
   final String message;
   final DateTime createTime;
+  final bool isAllRead;
 
   const ChatBox({
     Key? key,
@@ -16,6 +17,7 @@ class ChatBox extends StatefulWidget {
     required this.writerName,
     required this.message,
     required this.createTime,
+    required this.isAllRead,
   }) : super(key: key);
 
   @override
@@ -81,9 +83,18 @@ class _ChatBoxState extends State<ChatBox> {
                   formatDate(widget.createTime), // 메시지 시간
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey,
+                    color: Color.fromARGB(255, 79, 79, 79),
                   ),
                 ),
+                widget.writerId != widget.myId
+                    ? const SizedBox(height: 0)
+                    : Text(
+                        widget.isAllRead ? "읽음" : "안읽음",
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Color.fromARGB(255, 100, 100, 100),
+                        ),
+                      )
               ],
             ),
           ),

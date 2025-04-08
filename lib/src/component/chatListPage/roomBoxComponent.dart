@@ -13,6 +13,7 @@ class RoomBox extends StatefulWidget {
   final int chatNum;
   final DateTime createTime;
   final DateTime updateLastMsgTime;
+  final int? unreadCount;
 
   const RoomBox({
     Key? key,
@@ -22,6 +23,7 @@ class RoomBox extends StatefulWidget {
     required this.chatNum,
     required this.createTime,
     required this.updateLastMsgTime,
+    this.unreadCount,
   }) : super(key: key);
 
   @override
@@ -99,12 +101,33 @@ class _RoomBoxState extends State<RoomBox> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      widget.lastMsg,
-                      style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            widget.lastMsg,
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          widget.unreadCount == null || widget.unreadCount == 0
+                              ? const SizedBox.shrink()
+                              : Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromARGB(
+                                        255, 255, 47, 47), // 빨간색 배경
+                                    shape: BoxShape.circle, // 원형
+                                  ),
+                                  child: Text(
+                                    widget.unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white, // 글자색 흰색
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                )
+                        ]),
                   ],
                 ),
               ),

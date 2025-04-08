@@ -67,10 +67,10 @@ class _ChatListPageState extends State<ChatListPage> {
                         .indexWhere((chat) => chat.id == parsedData['roomId']);
                     if (index != -1) {
                       _data[index] = _data[index].copyWith(
-                        lastmsg: parsedData['msg'],
-                        updateLastMsgTime:
-                            DateTime.parse(parsedData['updateLastMsgTime']),
-                      );
+                          lastmsg: parsedData['msg'],
+                          updateLastMsgTime:
+                              DateTime.parse(parsedData['updateLastMsgTime']),
+                          unreadCount: parsedData['unreadCount']);
                     }
                     _data = List.from(_data)
                       ..sort((a, b) =>
@@ -99,6 +99,11 @@ class _ChatListPageState extends State<ChatListPage> {
     super.initState();
     _loadChatRooms();
     connect();
+  }
+
+  @override
+  void didPopNext() {
+    _loadChatRooms();
   }
 
   bool isLoading = false;
@@ -135,6 +140,7 @@ class _ChatListPageState extends State<ChatListPage> {
                 chatNum: chat.num,
                 createTime: chat.dateTime,
                 updateLastMsgTime: chat.updateLastMsgTime,
+                unreadCount: chat.unreadCount,
               );
             },
           ),
