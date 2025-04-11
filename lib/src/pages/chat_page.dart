@@ -286,8 +286,6 @@ class _ChatPageState extends State<ChatPage> {
         'msg': message,
         'writerId': myId,
         'writerName': myName,
-        'createdDate':
-            DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
       };
       stompClient.send(
         destination: '/app/message',

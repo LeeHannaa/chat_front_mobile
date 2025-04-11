@@ -13,9 +13,9 @@ class RoomBox extends StatefulWidget {
   final int chatNum;
   final DateTime createTime;
   final DateTime updateLastMsgTime;
-  final int? unreadCount;
+  int? unreadCount;
 
-  const RoomBox({
+  RoomBox({
     Key? key,
     required this.chatRoomId,
     required this.chatName,
@@ -59,12 +59,19 @@ class _RoomBoxState extends State<RoomBox> {
         ),
       ),
       child: InkWell(
-        onTap: () {
-          context.push('/chat', extra: {
+        onTap: () async {
+          await context.push('/chat', extra: {
             'id': widget.chatRoomId,
             'name': widget.chatName,
             'from': 'chatlist'
           });
+
+          // 채팅방에서 돌아오면 setState로 갱신
+          if (mounted) {
+            setState(() {
+              widget.unreadCount = 0;
+            });
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),

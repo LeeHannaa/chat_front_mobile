@@ -71,7 +71,21 @@ class _ChatListPageState extends State<ChatListPage> {
                           updateLastMsgTime:
                               DateTime.parse(parsedData['updateLastMsgTime']),
                           unreadCount: parsedData['unreadCount']);
+                    } else {
+                      // 새로운 채팅방 추가
+                      _data.add(ChatRoom(
+                        id: parsedData['roomId'],
+                        name: parsedData['name'],
+                        lastmsg: parsedData['msg'],
+                        num: parsedData['memberNum'] ?? 2,
+                        dateTime: DateTime.parse(parsedData['dateTime'] ??
+                            DateTime.now().toIso8601String()),
+                        updateLastMsgTime:
+                            DateTime.parse(parsedData['updateLastMsgTime']),
+                        unreadCount: parsedData['unreadCount'],
+                      ));
                     }
+
                     _data = List.from(_data)
                       ..sort((a, b) =>
                           b.updateLastMsgTime.compareTo(a.updateLastMsgTime));

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:chat_application/router.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -12,7 +15,22 @@ Future<void> initLocalNotification() async {
   const InitializationSettings initSettings =
       InitializationSettings(android: androidSettings);
 
-  await flutterLocalNotificationsPlugin.initialize(initSettings);
+  await flutterLocalNotificationsPlugin.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      if (response.payload != null) {
+        final data = jsonDecode(response.payload!);
+        final roomId = data['roomId'];
+        final roomName = data['roomName'];
+
+        router.push('/chat', extra: {
+          'id': int.parse(roomId),
+          'name': roomName,
+          'from': 'chatlist',
+        });
+      }
+    },
+  );
 }
 
 void showLocalNotification(RemoteMessage message) async {
@@ -26,10 +44,16 @@ void showLocalNotification(RemoteMessage message) async {
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidDetails);
 
+  final payload = jsonEncode({
+    'roomId': message.data['roomId'],
+    'roomName': message.data['roomName'],
+  });
+
   await flutterLocalNotificationsPlugin.show(
     0,
     message.notification?.title,
     message.notification?.body,
     notificationDetails,
+    payload: payload,
   );
 }

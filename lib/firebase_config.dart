@@ -1,7 +1,9 @@
 import 'package:chat_application/apis/userApi.dart';
 import 'package:chat_application/fcmAlram.dart';
+import 'package:chat_application/router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 
 // FCM 토큰 요청 함수
 Future<void> requestForToken(int? myId) async {
@@ -42,13 +44,23 @@ Future<void> requestForToken(int? myId) async {
 // 메시지 리스너
 void onMessageListener() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print(
-        'FCM 메시지 수신: ${message.notification?.title} - ${message.notification?.body}');
+    // print(
+    //     'FCM 메시지 수신: ${message.notification?.title} - ${message.notification?.body}');
     showLocalNotification(message);
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('사용자가 알림을 클릭하여 앱을 열었습니다: ${message.notification?.title}');
+    // print('사용자가 알림을 클릭하여 앱을 열었습니다: ${message.notification?.title}');
+    final roomId = message.data['roomId'];
+    final roomName = message.data['roomName'];
+    // print("알림 받은 데이터에서 roomId랑 roomName 확인!! : $roomId, $roomName");
+    if (roomId != null) {
+      router.push('/chat', extra: {
+        'id': int.parse(roomId),
+        'name': roomName,
+        'from': 'chatlist'
+      });
+    }
   });
 }
 

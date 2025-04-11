@@ -1,3 +1,4 @@
+import 'package:chat_application/main.dart';
 import 'package:chat_application/src/pages/aptDetail_page.dart';
 import 'package:chat_application/src/pages/aptlist_page.dart';
 import 'package:chat_application/src/pages/chat_page.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final router = GoRouter(
+  navigatorKey: navigatorKey,
   routes: [
     GoRoute(
       path: '/',
