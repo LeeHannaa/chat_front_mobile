@@ -1,4 +1,5 @@
 import 'package:chat_application/apis/chatApi.dart';
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -31,10 +32,17 @@ class RoomBox extends StatefulWidget {
 }
 
 class _RoomBoxState extends State<RoomBox> {
+  int? myId;
+  // myId 불러오는 함수
+  Future<void> _loadMyId() async {
+    myId = await SharedPreferencesHelper.getMyId();
+  }
+
   Future<void> leaveChatRoom(int roomId) async {
+    _loadMyId();
     await Provider.of<ChatRoomProvider>(context, listen: false)
         .removeChatRoom(roomId);
-    deleteChatRoom(roomId);
+    deleteChatRoom(roomId, myId!);
   }
 
   @override
@@ -63,7 +71,7 @@ class _RoomBoxState extends State<RoomBox> {
           await context.push('/chat', extra: {
             'id': widget.chatRoomId,
             'name': widget.chatName,
-            'from': 'chatlist'
+            'from': 'chatlist',
           });
 
           // 채팅방에서 돌아오면 setState로 갱신
@@ -82,10 +90,11 @@ class _RoomBoxState extends State<RoomBox> {
           child: Row(
             children: [
               CircleAvatar(
-                child: widget.chatNum > 2
-                    ? const Icon(Icons.group)
-                    : const Icon(Icons.person),
-              ),
+                  child: widget.chatNum > 1
+                      ? widget.chatNum > 2
+                          ? const Icon(Icons.group)
+                          : const Icon(Icons.person)
+                      : const Icon(Icons.person_off)),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

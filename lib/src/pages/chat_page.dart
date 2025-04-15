@@ -73,6 +73,7 @@ class _ChatPageState extends State<ChatPage> {
                   if (messagePayload is Map<String, dynamic>) {
                     setState(() {
                       final receivedChat = Message.fromJson(messagePayload);
+
                       if (receivedChat.count! > 1) {
                         userInRoom = true;
                         receivedChat.isRead = true;
@@ -286,6 +287,7 @@ class _ChatPageState extends State<ChatPage> {
         'msg': message,
         'writerId': myId,
         'writerName': myName,
+        'regDate': DateTime.now().toIso8601String(),
       };
       stompClient.send(
         destination: '/app/message',

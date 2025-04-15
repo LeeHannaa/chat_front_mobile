@@ -30,7 +30,7 @@ class Message {
       writerId: json['writerId'] ?? 0,
       roomId: json['roomId'] ?? 0,
       message: json['msg'] ?? '',
-      count: json['count'] ?? '',
+      count: int.tryParse(json['count'].toString()) ?? 0,
       createTime: json['createdDate'] != null
           ? DateTime.parse(json['createdDate'])
           : DateTime.now(),

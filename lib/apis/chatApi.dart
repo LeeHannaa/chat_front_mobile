@@ -13,7 +13,7 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
     final List<dynamic> jsonData = json.decode(response.body);
     final List<ChatRoom> chatRooms =
         jsonData.map((json) => ChatRoom.fromJson(json)).toList();
-    chatRooms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    chatRooms.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     log(response.body);
     return chatRooms;
@@ -45,10 +45,9 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
       .get(Uri.parse('$apiAddress/chatmsg/apt/find/list/$aptId?myId=$myId'));
 
   if (response.statusCode == 200) {
-    log(response.body);
+    log("채팅방 입장했을 때 정보 받아오기 : " + response.body);
     var decodedResponse = json.decode(response.body);
-    var messageList = decodedResponse[0]['body'] as List;
-    return messageList;
+    return decodedResponse;
   } else {
     log('Failed to load data: ${response.statusCode}');
     throw Exception('Failed to load chats');
@@ -69,10 +68,10 @@ Future<int> fetchUnreadCountByRoom(int roomId) async {
   }
 }
 
-Future<void> deleteChatRoom(int roomId) async {
+Future<void> deleteChatRoom(int roomId, int myId) async {
   log("$roomId 채팅방 삭제하기");
-  final response =
-      await http.delete(Uri.parse('$apiAddress/chat/delete/$roomId'));
+  final response = await http
+      .delete(Uri.parse('$apiAddress/chat/delete/$roomId?myId=$myId'));
   if (response.statusCode == 200) {
     log(response.body);
   } else {
