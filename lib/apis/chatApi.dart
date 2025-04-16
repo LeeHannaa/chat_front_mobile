@@ -13,44 +13,14 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
     final List<dynamic> jsonData = json.decode(response.body);
     final List<ChatRoom> chatRooms =
         jsonData.map((json) => ChatRoom.fromJson(json)).toList();
-    chatRooms.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    chatRooms
+        .sort((a, b) => b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
 
     log(response.body);
     return chatRooms;
   } else {
     log('Failed to load data: ${response.statusCode}');
     throw Exception('Failed to load chatRoom');
-  }
-}
-
-Future<List> fetchChatsByRoom(int roomId, BuildContext context) async {
-  log("chatlist에서 옴!!! roomId : $roomId");
-  final response =
-      await http.get(Uri.parse('$apiAddress/chatmsg/find/list/$roomId'));
-
-  if (response.statusCode == 200) {
-    log(response.body);
-    var decodedResponse = json.decode(response.body);
-    var messageList = decodedResponse[0]['body'] as List;
-    return messageList;
-  } else {
-    log('Failed to load data: ${response.statusCode}');
-    throw Exception('Failed to load chats');
-  }
-}
-
-Future<List> fetchChatsByApt(int myId, int aptId) async {
-  log("apt에서 옴!!! aptId : $aptId");
-  final response = await http
-      .get(Uri.parse('$apiAddress/chatmsg/apt/find/list/$aptId?myId=$myId'));
-
-  if (response.statusCode == 200) {
-    log("채팅방 입장했을 때 정보 받아오기 : " + response.body);
-    var decodedResponse = json.decode(response.body);
-    return decodedResponse;
-  } else {
-    log('Failed to load data: ${response.statusCode}');
-    throw Exception('Failed to load chats');
   }
 }
 

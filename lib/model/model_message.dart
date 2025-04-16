@@ -48,6 +48,26 @@ class Message {
         createTime: DateTime.parse(json['createTime']));
   }
 
+  Message copyWith({
+    String? id,
+    String? message,
+    int? writerId,
+    String? name,
+    int? roomId,
+    DateTime? createTime,
+    bool? isRead,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      message: message ?? this.message,
+      writerId: writerId ?? this.writerId,
+      name: name ?? this.name,
+      roomId: roomId ?? this.roomId,
+      createTime: createTime ?? this.createTime,
+      isRead: isRead ?? this.isRead,
+    );
+  }
+
   // 객체 데이터를 데이터베이스에 저장할 수 있는 형태로 변환
   Map<String, dynamic> toMap() => {
         "id": id,

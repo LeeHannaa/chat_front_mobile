@@ -5,7 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static const _databaseName = "chatService.db";
-  static const _databaseVersion = 6;
+  static const _databaseVersion = 7;
 
   // DatabaseHelper를 싱글턴으로 하여 데이터베이스 인스턴스가
   // 한번만 초기화 되도록함

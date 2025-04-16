@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:chat_application/apis/chatMessageApi.dart';
 import 'package:chat_application/model/model_chatroom.dart';
 import 'package:chat_application/src/providers/chatMessage_provider.dart';
 import 'package:provider/provider.dart';
@@ -136,7 +137,8 @@ class _ChatPageState extends State<ChatPage> {
     if (widget.from == 'chatlist') {
       roomId = widget.id;
       try {
-        messageList = await fetchChatsByRoom(roomId!, context); // List 형태
+        messageList =
+            await fetchChatsByRoom(roomId!, myId!, context); // List 형태
       } catch (e) {
         // sqlite에서 데이터 가져오기
         messageList =
@@ -241,16 +243,20 @@ class _ChatPageState extends State<ChatPage> {
                 shrinkWrap: true,
                 controller: chatInputScrollController,
                 itemBuilder: (context, index) {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: ChatBox(
-                      myId: myId!,
-                      writerId: messages[index].writerId,
-                      writerName: messages[index].name,
-                      message: messages[index].message,
-                      createTime: messages[index].createTime,
-                      isRead: messages[index].isRead ?? true,
-                      userInRoom: userInRoom,
+                  final message = messages[index];
+                  return GestureDetector(
+                    onLongPress: () => _showDeleteOptions(context, message),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ChatBox(
+                        myId: myId!,
+                        writerId: message.writerId,
+                        writerName: message.name,
+                        message: message.message,
+                        createTime: message.createTime,
+                        isRead: message.isRead ?? true,
+                        userInRoom: userInRoom,
+                      ),
                     ),
                   );
                 },
@@ -311,6 +317,59 @@ class _ChatPageState extends State<ChatPage> {
           duration: const Duration(milliseconds: 80),
           curve: Curves.easeOut,
         );
+      }
+    });
+  }
+
+  void _showDeleteOptions(BuildContext context, Message message) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text("이 기기에서 삭제"),
+                onTap: () {
+                  Navigator.pop(context); // 닫고
+                  _deleteForMe(message); // API 연결
+                },
+              ),
+              message.writerId == myId
+                  ? ListTile(
+                      leading: const Icon(Icons.delete_forever),
+                      title: const Text("전체에게 삭제"),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _deleteForAll(message, myId!); // API 연결
+                      },
+                    )
+                  : const SizedBox()
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteForMe(Message message) async {
+    await deleteChatMessageToMe(message.id);
+    setState(() {
+      messages.remove(message);
+    });
+  }
+
+  void _deleteForAll(Message message, int myId) async {
+    await deleteChatMessageToAll(message.id, myId);
+    setState(() {
+      final index = messages.indexOf(message);
+      if (index != -1) {
+        messages[index] = message.copyWith(message: "삭제된 메시지입니다.");
       }
     });
   }

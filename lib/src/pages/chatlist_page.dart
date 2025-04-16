@@ -84,11 +84,10 @@ class _ChatListPageState extends State<ChatListPage> {
                             DateTime.parse(parsedData['updateLastMsgTime']),
                         unreadCount: parsedData['unreadCount'],
                       ));
+                      _data = List.from(_data)
+                        ..sort((a, b) =>
+                            b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
                     }
-
-                    _data = List.from(_data)
-                      ..sort((a, b) =>
-                          b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
                   });
                 }
               },
