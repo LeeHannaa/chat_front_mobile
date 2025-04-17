@@ -39,10 +39,10 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
   }
 }
 
-Future<void> deleteChatMessageToMe(String msgId) async {
+Future<void> deleteChatMessageToMe(String msgId, int myId) async {
   log("$msgId 채팅 내역 내 기기에서 삭제하기");
-  final response =
-      await http.delete(Uri.parse('$apiAddress/chatmsg/delete/me/$msgId'));
+  final response = await http
+      .delete(Uri.parse('$apiAddress/chatmsg/delete/me/$msgId?myId=$myId'));
   if (response.statusCode == 200) {
     log(response.body);
   } else {

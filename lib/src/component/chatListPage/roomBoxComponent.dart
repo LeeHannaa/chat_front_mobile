@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../format/formatDate.dart';
 
 class RoomBox extends StatefulWidget {
+  final Future<void> Function() loadChatRooms;
   final int chatRoomId;
   final String chatName;
   final String lastMsg;
@@ -18,6 +19,7 @@ class RoomBox extends StatefulWidget {
 
   RoomBox({
     Key? key,
+    required this.loadChatRooms,
     required this.chatRoomId,
     required this.chatName,
     required this.lastMsg,
@@ -68,11 +70,15 @@ class _RoomBoxState extends State<RoomBox> {
       ),
       child: InkWell(
         onTap: () async {
-          await context.push('/chat', extra: {
+          final result = await context.push('/chat', extra: {
             'id': widget.chatRoomId,
             'name': widget.chatName,
             'from': 'chatlist',
           });
+          if (result == true) {
+            // 여기서 새로고침 로직 실행
+            await widget.loadChatRooms();
+          }
 
           // 채팅방에서 돌아오면 setState로 갱신
           if (mounted) {

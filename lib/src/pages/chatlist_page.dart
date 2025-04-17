@@ -19,7 +19,7 @@ class ChatListPage extends StatefulWidget {
   State<ChatListPage> createState() => _ChatListPageState();
 }
 
-class _ChatListPageState extends State<ChatListPage> {
+class _ChatListPageState extends State<ChatListPage> with RouteAware {
   final ScrollController _scrollController = ScrollController();
   late List<ChatRoom> _data = [];
   // CHECK : 나의 id를 프론트에서 넘겨서 백엔드에서 비교 후 확인하기
@@ -123,6 +123,15 @@ class _ChatListPageState extends State<ChatListPage> {
     disconnect();
   }
 
+  bool refreshTrigger = false;
+  @override
+  void didPopNext() {
+    // 이게 핵심!
+    setState(() {
+      refreshTrigger = !refreshTrigger;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,6 +151,7 @@ class _ChatListPageState extends State<ChatListPage> {
               final chat = _data[index];
               return RoomBox(
                 key: ValueKey(chat.updateLastMsgTime),
+                loadChatRooms: _loadChatRooms,
                 chatRoomId: chat.id,
                 chatName: chat.name,
                 lastMsg: chat.lastmsg,

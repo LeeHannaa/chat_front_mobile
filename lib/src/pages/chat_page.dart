@@ -224,11 +224,11 @@ class _ChatPageState extends State<ChatPage> {
         title: Text(widget.chatName),
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
+            onPressed: () async {
               // sqlite에서 lastmsg 데이터 업뎃
               Provider.of<ChatRoomProvider>(context, listen: false)
                   .updateLastMessages();
-              context.pop();
+              Navigator.pop(context, true);
             }),
       ),
       body: Column(
@@ -337,7 +337,7 @@ class _ChatPageState extends State<ChatPage> {
                 title: const Text("이 기기에서 삭제"),
                 onTap: () {
                   Navigator.pop(context); // 닫고
-                  _deleteForMe(message); // API 연결
+                  _deleteForMe(message, myId!); // API 연결
                 },
               ),
               message.writerId == myId
@@ -357,8 +357,8 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  void _deleteForMe(Message message) async {
-    await deleteChatMessageToMe(message.id);
+  void _deleteForMe(Message message, int myId) async {
+    await deleteChatMessageToMe(message.id, myId);
     setState(() {
       messages.remove(message);
     });
