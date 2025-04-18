@@ -112,6 +112,18 @@ class _ChatPageState extends State<ChatPage> {
                       userInRoom = false;
                     });
                   }
+                } else if (data['type'] == 'DELETE') {
+                  // 메시지가 삭제되었다!!
+                  String deleteMsgId = data['messageId'];
+                  log("특정 메시지 삭제!! $deleteMsgId");
+                  setState(() {
+                    int index = messages
+                        .indexWhere((message) => message.id == deleteMsgId);
+                    if (index != -1) {
+                      messages[index].message = "삭제된 메시지입니다.";
+                      messages[index].isDelete = true;
+                    }
+                  });
                 }
               },
             );
@@ -252,7 +264,7 @@ class _ChatPageState extends State<ChatPage> {
                         myId: myId!,
                         writerId: message.writerId,
                         writerName: message.name,
-                        message: message.message,
+                        message: message.message ?? '',
                         createTime: message.createTime,
                         isRead: message.isRead ?? true,
                         userInRoom: userInRoom,
@@ -290,6 +302,7 @@ class _ChatPageState extends State<ChatPage> {
       log("roomId저장하는 Id 확인: $roomId");
       final messageData = {
         'roomId': roomId,
+        'chatName': widget.chatName,
         'msg': message,
         'writerId': myId,
         'writerName': myName,
@@ -299,7 +312,7 @@ class _ChatPageState extends State<ChatPage> {
         destination: '/app/message',
         body: jsonEncode(messageData),
       );
-      log("전송된 메시지: 내아이디 : $myId, 내이름 : $myName, 채팅방 아이디 : $roomId, 메시지 : $message, 시간: ${DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now())} ");
+      log("전송된 메시지: 내아이디 : $myId, 내이름 : $myName, 채팅방 아이디 : $roomId, 채팅방 이름 : ${widget.chatName}, 메시지 : $message, 시간: ${DateTime.now().toIso8601String()}");
 
       messageController.clear();
       setState(() {
@@ -340,7 +353,7 @@ class _ChatPageState extends State<ChatPage> {
                   _deleteForMe(message, myId!); // API 연결
                 },
               ),
-              message.writerId == myId
+              message.writerId == myId && !message.isDelete!
                   ? ListTile(
                       leading: const Icon(Icons.delete_forever),
                       title: const Text("전체에게 삭제"),
@@ -369,7 +382,8 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       final index = messages.indexOf(message);
       if (index != -1) {
-        messages[index] = message.copyWith(message: "삭제된 메시지입니다.");
+        messages[index] =
+            message.copyWith(message: "삭제된 메시지입니다.", isDelete: true);
       }
     });
   }

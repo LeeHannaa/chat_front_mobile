@@ -75,19 +75,19 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
                       // 새로운 채팅방 추가
                       _data.add(ChatRoom(
                         id: parsedData['roomId'],
-                        name: parsedData['name'],
+                        name: parsedData['chatName'],
                         lastmsg: parsedData['msg'],
                         num: parsedData['memberNum'] ?? 2,
-                        dateTime: DateTime.parse(parsedData['dateTime'] ??
+                        dateTime: DateTime.parse(parsedData['regDate'] ??
                             DateTime.now().toIso8601String()),
                         updateLastMsgTime:
                             DateTime.parse(parsedData['updateLastMsgTime']),
                         unreadCount: parsedData['unreadCount'],
                       ));
-                      _data = List.from(_data)
-                        ..sort((a, b) =>
-                            b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
                     }
+                    _data = List.from(_data)
+                      ..sort((a, b) =>
+                          b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
                   });
                 }
               },

@@ -3,19 +3,21 @@ class Message {
     required this.id,
     required this.name,
     required this.writerId,
-    required this.message,
+    this.message,
     required this.roomId,
     this.count,
     required this.createTime,
+    this.isDelete,
     this.isRead = true,
   });
   final String id;
   final String name;
   final int writerId;
-  final String message;
+  String? message;
   final int roomId;
   final int? count;
   final DateTime createTime;
+  bool? isDelete;
   bool? isRead;
 
   @override
@@ -34,6 +36,7 @@ class Message {
       createTime: json['createdDate'] != null
           ? DateTime.parse(json['createdDate'])
           : DateTime.now(),
+      isDelete: json['delete'] ?? false,
       isRead: json['isRead'] ?? true,
     );
   }
@@ -55,6 +58,7 @@ class Message {
     String? name,
     int? roomId,
     DateTime? createTime,
+    bool? isDelete,
     bool? isRead,
   }) {
     return Message(
@@ -64,6 +68,7 @@ class Message {
       name: name ?? this.name,
       roomId: roomId ?? this.roomId,
       createTime: createTime ?? this.createTime,
+      isDelete: isDelete ?? this.isDelete,
       isRead: isRead ?? this.isRead,
     );
   }
