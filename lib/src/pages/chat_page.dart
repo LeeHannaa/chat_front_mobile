@@ -353,7 +353,9 @@ class _ChatPageState extends State<ChatPage> {
                   _deleteForMe(message, myId!); // API 연결
                 },
               ),
-              message.writerId == myId && !message.isDelete!
+              message.writerId == myId &&
+                      !message.isDelete! &&
+                      isWithin5Minutes(message.createTime)
                   ? ListTile(
                       leading: const Icon(Icons.delete_forever),
                       title: const Text("전체에게 삭제"),
@@ -368,6 +370,12 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
     );
+  }
+
+  bool isWithin5Minutes(DateTime chatTime) {
+    final now = DateTime.now();
+    final difference = now.difference(chatTime);
+    return difference.inMinutes < 5;
   }
 
   void _deleteForMe(Message message, int myId) async {
