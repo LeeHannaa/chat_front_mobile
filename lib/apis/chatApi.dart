@@ -24,9 +24,9 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
   }
 }
 
-Future<int> fetchUnreadCountByRoom(int roomId) async {
-  final response =
-      await http.get(Uri.parse('$apiAddress/chat/unread/count?roomId=$roomId'));
+Future<int> fetchUnreadCountByRoom(int roomId, int myId) async {
+  final response = await http
+      .get(Uri.parse('$apiAddress/chat/unread/count/$roomId?myId=$myId'));
 
   if (response.statusCode == 200) {
     log(response.body);

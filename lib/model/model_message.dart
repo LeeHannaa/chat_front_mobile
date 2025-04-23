@@ -5,20 +5,18 @@ class Message {
     required this.writerId,
     this.message,
     required this.roomId,
-    this.count,
     required this.createTime,
     this.isDelete,
-    this.isRead = true,
+    this.unreadCount,
   });
   final String id;
   final String name;
   final int writerId;
   String? message;
   final int roomId;
-  final int? count;
   final DateTime createTime;
   bool? isDelete;
-  bool? isRead;
+  int? unreadCount;
 
   @override
   String toString() {
@@ -32,12 +30,11 @@ class Message {
       writerId: json['writerId'] ?? 0,
       roomId: json['roomId'] ?? 0,
       message: json['msg'] ?? '',
-      count: int.tryParse(json['count'].toString()) ?? 0,
       createTime: json['createdDate'] != null
           ? DateTime.parse(json['createdDate'])
           : DateTime.now(),
       isDelete: json['delete'] ?? false,
-      isRead: json['isRead'] ?? true,
+      unreadCount: json['unreadCount'] ?? 0,
     );
   }
 
@@ -59,7 +56,7 @@ class Message {
     int? roomId,
     DateTime? createTime,
     bool? isDelete,
-    bool? isRead,
+    int? unreadCount,
   }) {
     return Message(
       id: id ?? this.id,
@@ -69,7 +66,7 @@ class Message {
       roomId: roomId ?? this.roomId,
       createTime: createTime ?? this.createTime,
       isDelete: isDelete ?? this.isDelete,
-      isRead: isRead ?? this.isRead,
+      unreadCount: unreadCount ?? this.unreadCount,
     );
   }
 

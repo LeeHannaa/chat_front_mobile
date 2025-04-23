@@ -45,8 +45,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   int? roomId;
-  int? unreadCount; // 제일 처음 입장했을 때 상대가 안읽은 메시지 수
-  bool userInRoom = false;
+  int? unreadCountByMe; // 제일 처음 입장했을 때 내가 안읽은 메시지 수
   late List<Message> messages;
 
   late StompClient stompClient;
@@ -74,16 +73,7 @@ class _ChatPageState extends State<ChatPage> {
                   if (messagePayload is Map<String, dynamic>) {
                     setState(() {
                       final receivedChat = Message.fromJson(messagePayload);
-
-                      if (receivedChat.count! > 1) {
-                        userInRoom = true;
-                        receivedChat.isRead = true;
-                      } else {
-                        userInRoom = false;
-                        receivedChat.isRead = false;
-                      }
                       messages.add(receivedChat);
-
                       // sqlite에 저장
                       Provider.of<ChatmessageProvider>(context, listen: false)
                           .addChatMessages(receivedChat);
@@ -94,23 +84,22 @@ class _ChatPageState extends State<ChatPage> {
                   moveScroll(chatInputScrollController);
                 } else if (data['type'] == 'INFO') {
                   // 누가 들어왔다는 알림 메시지 처리
-                  if (data['message'] == "상대방 입장") {
-                    log("상대방 입장!!!!!!!");
-                    setState(() {
-                      userInRoom = true;
-                      for (int i = messages.length - 1; i > 0; i--) {
-                        if (messages[i].isRead == true) break;
-                        messages[i].isRead = true;
-                      }
-                    });
-                  }
+                  log("상대방 입장!!!!!!!, 읽음처리해야할 메시지 개수 : ");
+                  int changeNumber = int.parse(data['message'].toString());
+                  log(data['message'].toString());
+                  setState(() {
+                    for (int i = messages.length - 1;
+                        i > messages.length - changeNumber - 1;
+                        i--) {
+                      if (messages[i].unreadCount == 0) break;
+                      messages[i].unreadCount =
+                          (messages[i].unreadCount ?? 1) - 1;
+                    }
+                  });
                 } else if (data['type'] == 'OUT') {
                   // 누가 나갔다는 알림 메시지 처리
                   if (data['message'] == "상대방 퇴장") {
                     log("상대방 퇴장!!!!!!!");
-                    setState(() {
-                      userInRoom = false;
-                    });
                   }
                 } else if (data['type'] == 'DELETE') {
                   // 메시지가 삭제되었다!!
@@ -163,8 +152,7 @@ class _ChatPageState extends State<ChatPage> {
       messageList = await fetchChatsByApt(myId!, widget.id);
       roomId = (messageList[0]['roomId']);
     }
-    // 상대방이 안읽은 메시지 수 가져오기
-    unreadCount = await fetchUnreadCountByRoom(roomId!);
+
     connect(); // 웹소켓 연결
     if (messageList[0]['id'] != null) {
       setState(() {
@@ -180,11 +168,17 @@ class _ChatPageState extends State<ChatPage> {
               .toList();
         }
       });
-      for (int i = messages.length - 1;
-          i >= messages.length - unreadCount!;
-          i--) {
-        messages[i].isRead = false; // 안읽음 표시
-      }
+      // 내가 안읽은 메시지 수 가져오기
+      unreadCountByMe = await fetchUnreadCountByRoom(roomId!, myId!);
+      // TODO : 내가 안읽은 메시지 수만큼 unreadCount 감소 처리
+      setState(() {
+        for (int i = messages.length - 1;
+            i > messages.length - unreadCountByMe! - 1;
+            i--) {
+          if (messages[i].unreadCount == 0) break;
+          messages[i].unreadCount = (messages[i].unreadCount ?? 1) - 1;
+        }
+      });
       moveScroll(chatInputScrollController);
     } else {
       // 처음 방 생성
@@ -266,8 +260,7 @@ class _ChatPageState extends State<ChatPage> {
                         writerName: message.name,
                         message: message.message ?? '',
                         createTime: message.createTime,
-                        isRead: message.isRead ?? true,
-                        userInRoom: userInRoom,
+                        unreadCount: message.unreadCount ?? 0,
                       ),
                     ),
                   );
