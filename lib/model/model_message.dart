@@ -8,6 +8,7 @@ class Message {
     required this.createTime,
     this.isDelete,
     this.unreadCount,
+    this.type,
   });
   final String id;
   final String name;
@@ -17,6 +18,7 @@ class Message {
   final DateTime createTime;
   bool? isDelete;
   int? unreadCount;
+  String? type;
 
   @override
   String toString() {
@@ -25,17 +27,17 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-      id: json['id'] ?? '',
-      name: json['writerName'] ?? 'Unknown',
-      writerId: json['writerId'] ?? 0,
-      roomId: json['roomId'] ?? 0,
-      message: json['msg'] ?? '',
-      createTime: json['createdDate'] != null
-          ? DateTime.parse(json['createdDate'])
-          : DateTime.now(),
-      isDelete: json['delete'] ?? false,
-      unreadCount: json['unreadCount'] ?? 0,
-    );
+        id: json['id'] ?? '',
+        name: json['writerName'] ?? 'Unknown',
+        writerId: json['writerId'] ?? 0,
+        roomId: json['roomId'] ?? 0,
+        message: json['msg'] ?? '',
+        createTime: json['createdDate'] != null
+            ? DateTime.parse(json['createdDate'])
+            : DateTime.now(),
+        isDelete: json['delete'] ?? false,
+        unreadCount: json['unreadCount'] ?? 0,
+        type: json['type'] ?? '');
   }
 
   factory Message.fromJsonSqlite(Map<String, dynamic> json) {
@@ -57,17 +59,18 @@ class Message {
     DateTime? createTime,
     bool? isDelete,
     int? unreadCount,
+    String? type,
   }) {
     return Message(
-      id: id ?? this.id,
-      message: message ?? this.message,
-      writerId: writerId ?? this.writerId,
-      name: name ?? this.name,
-      roomId: roomId ?? this.roomId,
-      createTime: createTime ?? this.createTime,
-      isDelete: isDelete ?? this.isDelete,
-      unreadCount: unreadCount ?? this.unreadCount,
-    );
+        id: id ?? this.id,
+        message: message ?? this.message,
+        writerId: writerId ?? this.writerId,
+        name: name ?? this.name,
+        roomId: roomId ?? this.roomId,
+        createTime: createTime ?? this.createTime,
+        isDelete: isDelete ?? this.isDelete,
+        unreadCount: unreadCount ?? this.unreadCount,
+        type: type ?? this.type);
   }
 
   // 객체 데이터를 데이터베이스에 저장할 수 있는 형태로 변환

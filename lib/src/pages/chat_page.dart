@@ -170,7 +170,6 @@ class _ChatPageState extends State<ChatPage> {
       });
       // 내가 안읽은 메시지 수 가져오기
       unreadCountByMe = await fetchUnreadCountByRoom(roomId!, myId!);
-      // TODO : 내가 안읽은 메시지 수만큼 unreadCount 감소 처리
       setState(() {
         for (int i = messages.length - 1;
             i > messages.length - unreadCountByMe! - 1;
@@ -259,6 +258,7 @@ class _ChatPageState extends State<ChatPage> {
                         writerId: message.writerId,
                         writerName: message.name,
                         message: message.message ?? '',
+                        type: message.type ?? '',
                         createTime: message.createTime,
                         unreadCount: message.unreadCount ?? 0,
                       ),
