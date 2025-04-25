@@ -113,6 +113,49 @@ class _ChatPageState extends State<ChatPage> {
                       messages[index].isDelete = true;
                     }
                   });
+                } else if (data['type'] == 'LEAVE') {
+                  // 유저가 채팅방을 나간 경우 실시간 알림 전달
+                  final messagePayload = data['message'];
+                  // 유저가 안읽은 메시지가 존재한 채 채팅방을 나간 경우
+                  int changeNumber =
+                      int.parse(data['msgToReadCount'].toString());
+                  log(data['message'].toString());
+                  setState(() {
+                    for (int i = messages.length - 1;
+                        i > messages.length - changeNumber - 1;
+                        i--) {
+                      if (messages[i].unreadCount == 0) break;
+                      messages[i].unreadCount =
+                          (messages[i].unreadCount ?? 1) - 1;
+                    }
+                  });
+                  if (messagePayload is Map<String, dynamic>) {
+                    setState(() {
+                      final receivedChat = Message.fromJson(messagePayload);
+                      messages.add(receivedChat);
+                      // sqlite에 저장
+                      Provider.of<ChatmessageProvider>(context, listen: false)
+                          .addChatMessages(receivedChat);
+                    });
+                  } else {
+                    log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                  }
+                  moveScroll(chatInputScrollController);
+                } else if (data['type'] == 'INVITE') {
+                  // 일반 채팅 메시지 처리
+                  final messagePayload = data['message'];
+                  if (messagePayload is Map<String, dynamic>) {
+                    setState(() {
+                      final receivedChat = Message.fromJson(messagePayload);
+                      messages.add(receivedChat);
+                      // sqlite에 저장
+                      Provider.of<ChatmessageProvider>(context, listen: false)
+                          .addChatMessages(receivedChat);
+                    });
+                  } else {
+                    log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                  }
+                  moveScroll(chatInputScrollController);
                 }
               },
             );

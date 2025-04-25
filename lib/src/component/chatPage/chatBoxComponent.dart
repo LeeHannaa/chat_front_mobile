@@ -104,7 +104,29 @@ class _ChatBoxState extends State<ChatBox> {
                   ),
                 ),
               )
-            : const Align(),
+            : Align(
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Text(
+                      widget.message, // 메시지 내용
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 202, 123, 89),
+                      ),
+                    ),
+                    //TODO : 유저가 초대된 경우는 그냥 글자만, 나간 경우는 누르면 초대할 수 있는 api 연결하기
+                    ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color.fromARGB(255, 226, 255, 221),
+                        minimumSize: const Size(200, 30),
+                      ),
+                      child: const Text("다시 채팅방에 초대하기"),
+                    ),
+                  ],
+                )),
       ],
     );
   }

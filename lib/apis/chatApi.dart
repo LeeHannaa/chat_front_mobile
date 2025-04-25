@@ -48,3 +48,27 @@ Future<void> deleteChatRoom(int roomId, int myId) async {
     throw Exception('Failed to delete chatRoom');
   }
 }
+
+// TODO : 초대된 데이터 넘어오면 유저 초대되었다고 확인
+// TODO :다시 들어왔다는 것도 채팅 내역에 (db) 추가해야함.......(함) 백에서 따로 추가하고 프론트에서도 일단 일시적으로 추가해두는걸로!!
+Future<int> postInviteUserInGroupChat(int roomId, int myId) async {
+  final response = await http.post(
+    Uri.parse('$apiAddress/chat/invite/user/group'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'userId': myId,
+      'roomId': roomId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    log(response.body);
+    int unreadCount = int.parse(response.body);
+    return unreadCount;
+  } else {
+    log('Failed to load data: ${response.statusCode}');
+    throw Exception('Failed to load unreadCount by chatRoom');
+  }
+}
