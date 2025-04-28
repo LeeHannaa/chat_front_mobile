@@ -6,9 +6,10 @@ class Message {
     this.message,
     required this.roomId,
     required this.createTime,
-    this.isDelete,
+    this.delete,
     this.unreadCount,
     this.type,
+    this.beforeMsgId,
   });
   final String id;
   final String name;
@@ -16,9 +17,10 @@ class Message {
   String? message;
   final int roomId;
   final DateTime createTime;
-  bool? isDelete;
+  bool? delete;
   int? unreadCount;
   String? type;
+  String? beforeMsgId;
 
   @override
   String toString() {
@@ -35,9 +37,10 @@ class Message {
         createTime: json['createdDate'] != null
             ? DateTime.parse(json['createdDate'])
             : DateTime.now(),
-        isDelete: json['delete'] ?? false,
+        delete: json['delete'] ?? false,
         unreadCount: json['unreadCount'] ?? 0,
-        type: json['type'] ?? '');
+        type: json['type'] ?? '',
+        beforeMsgId: json['beforeMsgId'] ?? '');
   }
 
   factory Message.fromJsonSqlite(Map<String, dynamic> json) {
@@ -57,7 +60,7 @@ class Message {
     String? name,
     int? roomId,
     DateTime? createTime,
-    bool? isDelete,
+    bool? delete,
     int? unreadCount,
     String? type,
   }) {
@@ -68,7 +71,7 @@ class Message {
         name: name ?? this.name,
         roomId: roomId ?? this.roomId,
         createTime: createTime ?? this.createTime,
-        isDelete: isDelete ?? this.isDelete,
+        delete: delete ?? this.delete,
         unreadCount: unreadCount ?? this.unreadCount,
         type: type ?? this.type);
   }
