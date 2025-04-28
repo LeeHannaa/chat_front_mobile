@@ -24,9 +24,9 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
   }
 }
 
-Future<int> fetchUnreadCountByRoom(int roomId) async {
-  final response =
-      await http.get(Uri.parse('$apiAddress/chat/unread/count?roomId=$roomId'));
+Future<int> fetchUnreadCountByRoom(int roomId, int myId) async {
+  final response = await http
+      .get(Uri.parse('$apiAddress/chat/unread/count/$roomId?myId=$myId'));
 
   if (response.statusCode == 200) {
     log(response.body);
@@ -46,5 +46,25 @@ Future<void> deleteChatRoom(int roomId, int myId) async {
     log(response.body);
   } else {
     throw Exception('Failed to delete chatRoom');
+  }
+}
+
+Future<int> postInviteUserInGroupChat(
+    int roomId, int userId, String msgId) async {
+  final response = await http.post(
+    Uri.parse('$apiAddress/chat/invite/user/group'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'userId': userId, 'roomId': roomId, 'msgId': msgId}),
+  );
+
+  if (response.statusCode == 200) {
+    log(response.body);
+    int unreadCount = int.parse(response.body);
+    return unreadCount;
+  } else {
+    log('Failed to load data: ${response.statusCode}');
+    throw Exception('Failed to load unreadCount by chatRoom');
   }
 }

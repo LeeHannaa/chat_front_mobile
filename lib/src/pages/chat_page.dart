@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:developer' as developer;
+import 'dart:math';
 import 'package:chat_application/apis/chatMessageApi.dart';
 import 'package:chat_application/model/model_chatroom.dart';
 import 'package:chat_application/src/providers/chatMessage_provider.dart';
@@ -45,9 +46,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   int? roomId;
-  int? unreadCount; // 제일 처음 입장했을 때 상대가 안읽은 메시지 수
-  bool userInRoom = false;
+  int? unreadCountByMe; // 제일 처음 입장했을 때 내가 안읽은 메시지 수
   late List<Message> messages;
+  Set<String> hiddenBtId = Set<String>();
 
   late StompClient stompClient;
   void connect() {
@@ -60,77 +61,123 @@ class _ChatPageState extends State<ChatPage> {
           'myId': myId!.toString(),
         },
         onConnect: (StompFrame frame) {
-          log('Connected to WebSocket');
+          developer.log('Connected to WebSocket');
           if (roomId != null) {
             // 메시지 구독
             stompClient.subscribe(
               destination: '/topic/chatroom/$roomId',
               callback: (StompFrame frame) {
                 final data = jsonDecode(frame.body!);
-                log("Received: type of $data");
+                developer.log("Received: type of $data");
                 if (data['type'] == 'CHAT') {
                   // 일반 채팅 메시지 처리
                   final messagePayload = data['message'];
                   if (messagePayload is Map<String, dynamic>) {
                     setState(() {
                       final receivedChat = Message.fromJson(messagePayload);
-
-                      if (receivedChat.count! > 1) {
-                        userInRoom = true;
-                        receivedChat.isRead = true;
-                      } else {
-                        userInRoom = false;
-                        receivedChat.isRead = false;
-                      }
                       messages.add(receivedChat);
-
                       // sqlite에 저장
                       Provider.of<ChatmessageProvider>(context, listen: false)
                           .addChatMessages(receivedChat);
                     });
                   } else {
-                    log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                    developer.log(
+                        "❌ message가 Map이 아님: ${messagePayload.runtimeType}");
                   }
                   moveScroll(chatInputScrollController);
                 } else if (data['type'] == 'INFO') {
                   // 누가 들어왔다는 알림 메시지 처리
-                  if (data['message'] == "상대방 입장") {
-                    log("상대방 입장!!!!!!!");
-                    setState(() {
-                      userInRoom = true;
-                      for (int i = messages.length - 1; i > 0; i--) {
-                        if (messages[i].isRead == true) break;
-                        messages[i].isRead = true;
+                  developer.log("상대방 입장!!!!!!!, 읽음처리해야할 메시지 개수 : ");
+                  int changeNumber = int.parse(data['message'].toString());
+                  developer.log(data['message'].toString());
+                  setState(() {
+                    for (int i = messages.length - 1;
+                        i > max(0, messages.length - changeNumber - 1);
+                        i--) {
+                      if (messages[i].type == 'TEXT') {
+                        if (messages[i].unreadCount == 0) break;
+                        messages[i].unreadCount =
+                            (messages[i].unreadCount ?? 1) - 1;
                       }
-                    });
-                  }
+                    }
+                  });
                 } else if (data['type'] == 'OUT') {
                   // 누가 나갔다는 알림 메시지 처리
                   if (data['message'] == "상대방 퇴장") {
-                    log("상대방 퇴장!!!!!!!");
-                    setState(() {
-                      userInRoom = false;
-                    });
+                    developer.log("상대방 퇴장!!!!!!!");
                   }
                 } else if (data['type'] == 'DELETE') {
                   // 메시지가 삭제되었다!!
                   String deleteMsgId = data['messageId'];
-                  log("특정 메시지 삭제!! $deleteMsgId");
+                  developer.log("특정 메시지 삭제!! $deleteMsgId");
                   setState(() {
                     int index = messages
                         .indexWhere((message) => message.id == deleteMsgId);
                     if (index != -1) {
                       messages[index].message = "삭제된 메시지입니다.";
-                      messages[index].isDelete = true;
+                      messages[index].delete = true;
                     }
                   });
+                } else if (data['type'] == 'LEAVE') {
+                  // 유저가 채팅방을 나간 경우 실시간 알림 전달
+                  final messagePayload = data['message'];
+                  // 유저가 안읽은 메시지가 존재한 채 채팅방을 나간 경우
+                  int changeNumber =
+                      int.parse(data['msgToReadCount'].toString());
+                  developer.log(data['message'].toString());
+                  setState(() {
+                    for (int i = messages.length - 1;
+                        i > max(0, messages.length - changeNumber - 1);
+                        i--) {
+                      if (messages[i].type == 'TEXT') {
+                        if (messages[i].unreadCount == 0) break;
+                        messages[i].unreadCount =
+                            (messages[i].unreadCount ?? 1) - 1;
+                      }
+                    }
+                  });
+                  if (messagePayload is Map<String, dynamic>) {
+                    setState(() {
+                      final receivedChat = Message.fromJson(messagePayload);
+                      messages.add(receivedChat);
+                      // sqlite에 저장
+                      Provider.of<ChatmessageProvider>(context, listen: false)
+                          .addChatMessages(receivedChat);
+                    });
+                  } else {
+                    developer.log(
+                        "❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                  }
+                  moveScroll(chatInputScrollController);
+                } else if (data['type'] == 'INVITE') {
+                  // 일반 채팅 메시지 처리
+                  final messagePayload = data['message'];
+                  if (messagePayload is Map<String, dynamic>) {
+                    setState(() {
+                      final receivedChat = Message.fromJson(messagePayload);
+                      messages.add(receivedChat);
+                      setState(() {
+                        if (receivedChat.beforeMsgId != null) {
+                          hiddenBtId.add(receivedChat.beforeMsgId!);
+                        }
+                      });
+                      // sqlite에 저장
+                      Provider.of<ChatmessageProvider>(context, listen: false)
+                          .addChatMessages(receivedChat);
+                    });
+                  } else {
+                    developer.log(
+                        "❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+                  }
+                  moveScroll(chatInputScrollController);
                 }
               },
             );
           }
         },
-        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
-        onDisconnect: (StompFrame frame) => log('Disconnected'),
+        onWebSocketError: (dynamic error) =>
+            developer.log('WebSocket Error: $error'),
+        onDisconnect: (StompFrame frame) => developer.log('Disconnected'),
       ),
     );
 
@@ -157,14 +204,13 @@ class _ChatPageState extends State<ChatPage> {
             await Provider.of<ChatmessageProvider>(context, listen: false)
                 .loadChatMessages(roomId!);
         connectServer = false;
-        log('Error loading chat rooms: $e');
+        developer.log('Error loading chat rooms: $e');
       }
     } else {
       messageList = await fetchChatsByApt(myId!, widget.id);
       roomId = (messageList[0]['roomId']);
     }
-    // 상대방이 안읽은 메시지 수 가져오기
-    unreadCount = await fetchUnreadCountByRoom(roomId!);
+
     connect(); // 웹소켓 연결
     if (messageList[0]['id'] != null) {
       setState(() {
@@ -180,11 +226,16 @@ class _ChatPageState extends State<ChatPage> {
               .toList();
         }
       });
-      for (int i = messages.length - 1;
-          i >= messages.length - unreadCount!;
-          i--) {
-        messages[i].isRead = false; // 안읽음 표시
-      }
+      // 내가 안읽은 메시지 수 가져오기
+      unreadCountByMe = await fetchUnreadCountByRoom(roomId!, myId!);
+      setState(() {
+        for (int i = messages.length - 1;
+            i > messages.length - unreadCountByMe! - 1;
+            i--) {
+          if (messages[i].unreadCount == 0) break;
+          messages[i].unreadCount = (messages[i].unreadCount ?? 1) - 1;
+        }
+      });
       moveScroll(chatInputScrollController);
     } else {
       // 처음 방 생성
@@ -261,14 +312,17 @@ class _ChatPageState extends State<ChatPage> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: ChatBox(
-                        myId: myId!,
-                        writerId: message.writerId,
-                        writerName: message.name,
-                        message: message.message ?? '',
-                        createTime: message.createTime,
-                        isRead: message.isRead ?? true,
-                        userInRoom: userInRoom,
-                      ),
+                          myId: myId!,
+                          writerId: message.writerId,
+                          writerName: message.name,
+                          message: message.message ?? '',
+                          type: message.type ?? '',
+                          createTime: message.createTime,
+                          unreadCount: message.unreadCount ?? 0,
+                          delete: message.delete ?? false,
+                          roomId: roomId!,
+                          msgId: message.id,
+                          hiddenBtId: hiddenBtId),
                     ),
                   );
                 },
@@ -299,7 +353,7 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() async {
     String message = messageController.text;
     if (message.isNotEmpty) {
-      log("roomId저장하는 Id 확인: $roomId");
+      developer.log("roomId저장하는 Id 확인: $roomId");
       final messageData = {
         'roomId': roomId,
         'chatName': widget.chatName,
@@ -312,7 +366,8 @@ class _ChatPageState extends State<ChatPage> {
         destination: '/app/message',
         body: jsonEncode(messageData),
       );
-      log("전송된 메시지: 내아이디 : $myId, 내이름 : $myName, 채팅방 아이디 : $roomId, 채팅방 이름 : ${widget.chatName}, 메시지 : $message, 시간: ${DateTime.now().toIso8601String()}");
+      developer.log(
+          "전송된 메시지: 내아이디 : $myId, 내이름 : $myName, 채팅방 아이디 : $roomId, 채팅방 이름 : ${widget.chatName}, 메시지 : $message, 시간: ${DateTime.now().toIso8601String()}");
 
       messageController.clear();
       setState(() {
@@ -354,7 +409,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
               message.writerId == myId &&
-                      !message.isDelete! &&
+                      !message.delete! &&
                       isWithin5Minutes(message.createTime)
                   ? ListTile(
                       leading: const Icon(Icons.delete_forever),
@@ -391,7 +446,7 @@ class _ChatPageState extends State<ChatPage> {
       final index = messages.indexOf(message);
       if (index != -1) {
         messages[index] =
-            message.copyWith(message: "삭제된 메시지입니다.", isDelete: true);
+            message.copyWith(message: "삭제된 메시지입니다.", delete: true);
       }
     });
   }

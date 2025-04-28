@@ -114,6 +114,14 @@ class _RoomBoxState extends State<RoomBox> {
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
+                        widget.chatNum > 2
+                            ? Text(
+                                widget.chatNum.toString(),
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 141, 141, 141),
+                                    fontSize: 10),
+                              )
+                            : const SizedBox(),
                         Text(
                           formatDate(widget.updateLastMsgTime),
                           style: const TextStyle(
