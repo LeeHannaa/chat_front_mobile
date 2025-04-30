@@ -114,7 +114,8 @@ class _ChatPageState extends State<ChatPage> {
                     int index = messages
                         .indexWhere((message) => message.id == deleteMsgId);
                     if (index != -1) {
-                      messages[index].message = "삭제된 메시지입니다.";
+                      // messages[index].message = "삭제된 메시지입니다.";
+                      messages.removeAt(index);
                       messages[index].delete = true;
                     }
                   });
@@ -308,7 +309,9 @@ class _ChatPageState extends State<ChatPage> {
                 itemBuilder: (context, index) {
                   final message = messages[index];
                   return GestureDetector(
-                    onLongPress: () => _showDeleteOptions(context, message),
+                    onLongPress: () => myId == message.writerId
+                        ? _showDeleteOptions(context, message)
+                        : (),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: ChatBox(
@@ -400,17 +403,16 @@ class _ChatPageState extends State<ChatPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text("이 기기에서 삭제"),
-                onTap: () {
-                  Navigator.pop(context); // 닫고
-                  _deleteForMe(message, myId!); // API 연결
-                },
-              ),
-              message.writerId == myId &&
-                      !message.delete! &&
-                      isWithin5Minutes(message.createTime)
+              const ListTile(
+                  // leading: const Icon(Icons.delete_outline),
+                  // title: const Text("이 기기에서 삭제"),
+                  // onTap: () {
+                  //   Navigator.pop(context); // 닫고
+                  //   _deleteForMe(message, myId!); // API 연결
+                  // },
+                  ),
+              message.writerId == myId && !message.delete!
+                  // && isWithin5Minutes(message.createTime)
                   ? ListTile(
                       leading: const Icon(Icons.delete_forever),
                       title: const Text("전체에게 삭제"),
@@ -427,26 +429,26 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  bool isWithin5Minutes(DateTime chatTime) {
-    final now = DateTime.now();
-    final difference = now.difference(chatTime);
-    return difference.inMinutes < 5;
-  }
+  // bool isWithin5Minutes(DateTime chatTime) {
+  //   final now = DateTime.now();
+  //   final difference = now.difference(chatTime);
+  //   return difference.inMinutes < 5;
+  // }
 
-  void _deleteForMe(Message message, int myId) async {
-    await deleteChatMessageToMe(message.id, myId);
-    setState(() {
-      messages.remove(message);
-    });
-  }
+  // void _deleteForMe(Message message, int myId) async {
+  //   await deleteChatMessageToMe(message.id, myId);
+  //   setState(() {
+  //     messages.remove(message);
+  //   });
+  // }
 
   void _deleteForAll(Message message, int myId) async {
     await deleteChatMessageToAll(message.id, myId);
     setState(() {
       final index = messages.indexOf(message);
       if (index != -1) {
-        messages[index] =
-            message.copyWith(message: "삭제된 메시지입니다.", delete: true);
+        // messages[index] = message.copyWith(message: "삭제된 메시지입니다.", delete: true);
+        messages.removeAt(index);
       }
     });
   }

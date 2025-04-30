@@ -28,6 +28,8 @@ Future<void> initLocalNotification() async {
           'name': roomName,
           'from': 'chatlist',
         });
+      } else {
+        router.push('/note');
       }
     },
   );
