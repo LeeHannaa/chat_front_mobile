@@ -14,7 +14,7 @@ class Note {
   final String phoneNumber;
   final String noteText;
   final DateTime regDate;
-  final bool isRead;
+  bool isRead;
 
   @override
   String toString() {
@@ -23,11 +23,11 @@ class Note {
 
   factory Note.fromJson(Map<String, dynamic> json) {
     return Note(
-        noteId: json['noteId'] ?? 0,
-        aptId: json['aptId'] ?? 0,
-        aptName: json['aptName'] ?? '',
-        phoneNumber: json['phoneNumber'] ?? '',
-        noteText: json['noteText'] ?? '',
+        noteId: json['noteId'],
+        aptId: json['aptId'],
+        aptName: json['aptName'],
+        phoneNumber: json['phoneNumber'],
+        noteText: json['noteText'],
         regDate: DateTime.parse(json['regDate']),
         isRead: json['isRead'] ?? false);
   }

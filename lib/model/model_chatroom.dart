@@ -6,7 +6,6 @@ class ChatRoom {
     // required this.counselId,
     // required this.consultId,
     required this.num,
-    required this.dateTime,
     required this.updateLastMsgTime,
     this.unreadCount,
   });
@@ -16,14 +15,13 @@ class ChatRoom {
   // final int counselId; // 매물 문의자
   // final int consultId; // 매물 소유자
   final int num;
-  final DateTime dateTime;
   final DateTime updateLastMsgTime;
   final int? unreadCount;
 
   @override
   String toString() {
     // return '$name $lastmsg (ID: $id, consultId : $consultId, counselId: $counselId, Num: $num, Date: ${dateTime.toLocal()})';
-    return '$name $lastmsg (ID: $id, Num: $num, Date: ${dateTime.toLocal()})';
+    return '$name $lastmsg (ID: $id, Num: $num, Date: ${updateLastMsgTime.toLocal()})';
   }
 
   factory ChatRoom.fromJson(Map<String, dynamic> json) {
@@ -32,7 +30,6 @@ class ChatRoom {
       name: json['name'],
       lastmsg: json['lastMsg'] ?? '',
       num: json['memberNum'],
-      dateTime: DateTime.parse(json['regDate']),
       updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']),
       unreadCount: json['unreadCount'],
     );
@@ -44,7 +41,6 @@ class ChatRoom {
       name: json['name'],
       lastmsg: json['lastmsg'] ?? '',
       num: json['num'],
-      dateTime: DateTime.parse(json['dateTime']),
       updateLastMsgTime: DateTime.parse(json['updateLastMsgTime']),
     );
   }
@@ -55,7 +51,6 @@ class ChatRoom {
         "name": name,
         "lastmsg": lastmsg,
         "num": num,
-        "dateTime": dateTime.toIso8601String(),
         "updateLastMsgTime": updateLastMsgTime.toIso8601String(),
       };
 
@@ -69,7 +64,6 @@ class ChatRoom {
         name: name,
         lastmsg: lastmsg ?? this.lastmsg,
         num: num,
-        dateTime: dateTime,
         updateLastMsgTime: updateLastMsgTime ?? this.updateLastMsgTime,
         unreadCount: unreadCount ?? this.unreadCount);
   }
