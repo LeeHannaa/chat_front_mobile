@@ -13,7 +13,6 @@ class RoomBox extends StatefulWidget {
   final String chatName;
   final String lastMsg;
   final int chatNum;
-  final DateTime createTime;
   final DateTime updateLastMsgTime;
   int? unreadCount;
 
@@ -24,7 +23,6 @@ class RoomBox extends StatefulWidget {
     required this.chatName,
     required this.lastMsg,
     required this.chatNum,
-    required this.createTime,
     required this.updateLastMsgTime,
     this.unreadCount,
   }) : super(key: key);

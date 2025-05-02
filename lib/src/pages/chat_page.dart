@@ -245,7 +245,6 @@ class _ChatPageState extends State<ChatPage> {
           id: roomId!,
           name: messageList[0]['roomName'],
           lastmsg: '',
-          dateTime: DateTime.parse(messageList[0]['regDate']),
           num: messageList[0]['memberNum'],
           updateLastMsgTime:
               DateTime.parse(messageList[0]['updateLastMsgTime']),

@@ -55,40 +55,39 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
           if (myId != null) {
             // 메시지 구독
             stompClient.subscribe(
-              destination: '/topic/chatlist/$myId', // 받는 사람이 myId인 경우 구독
+              destination: '/topic/user/$myId', // 받는 사람이 myId인 경우 구독
               callback: (StompFrame frame) {
                 if (frame.body != null) {
                   final parsedData =
                       jsonDecode(frame.body!) as Map<String, dynamic>;
                   log("새로운 채팅 목록 업데이트 데이터: $parsedData");
-
-                  setState(() {
-                    int index = _data
-                        .indexWhere((chat) => chat.id == parsedData['roomId']);
-                    if (index != -1) {
-                      _data[index] = _data[index].copyWith(
-                          lastmsg: parsedData['msg'],
-                          updateLastMsgTime:
-                              DateTime.parse(parsedData['updateLastMsgTime']),
-                          unreadCount: parsedData['unreadCount']);
-                    } else {
-                      // 새로운 채팅방 추가
-                      _data.add(ChatRoom(
-                        id: parsedData['roomId'],
-                        name: parsedData['chatName'],
-                        lastmsg: parsedData['msg'],
-                        num: parsedData['memberNum'] ?? 2,
-                        dateTime: DateTime.parse(parsedData['regDate'] ??
-                            DateTime.now().toIso8601String()),
-                        updateLastMsgTime:
-                            DateTime.parse(parsedData['updateLastMsgTime']),
-                        unreadCount: parsedData['unreadCount'],
-                      ));
-                    }
-                    _data = List.from(_data)
-                      ..sort((a, b) =>
-                          b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
-                  });
+                  if (parsedData['type'] == 'CHATLIST') {
+                    setState(() {
+                      int index = _data.indexWhere(
+                          (chat) => chat.id == parsedData['message']['roomId']);
+                      if (index != -1) {
+                        _data[index] = _data[index].copyWith(
+                            lastmsg: parsedData['message']['msg'],
+                            updateLastMsgTime: DateTime.parse(
+                                parsedData['message']['updateLastMsgTime']),
+                            unreadCount: parsedData['message']['unreadCount']);
+                      } else {
+                        // 새로운 채팅방 추가
+                        _data.add(ChatRoom(
+                          id: parsedData['message']['roomId'],
+                          name: parsedData['message']['chatName'],
+                          lastmsg: parsedData['message']['msg'],
+                          num: parsedData['message']['memberNum'] ?? 2,
+                          updateLastMsgTime: DateTime.parse(
+                              parsedData['message']['updateLastMsgTime']),
+                          unreadCount: parsedData['message']['unreadCount'],
+                        ));
+                      }
+                      _data = List.from(_data)
+                        ..sort((a, b) =>
+                            b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
+                    });
+                  }
                 }
               },
             );
@@ -156,7 +155,6 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
                 chatName: chat.name,
                 lastMsg: chat.lastmsg,
                 chatNum: chat.num,
-                createTime: chat.dateTime,
                 updateLastMsgTime: chat.updateLastMsgTime,
                 unreadCount: chat.unreadCount,
               );

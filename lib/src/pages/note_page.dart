@@ -7,6 +7,7 @@ import 'package:chat_application/src/component/noteDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 import '../data/keyData.dart';
 
@@ -59,16 +60,79 @@ class _NotePageState extends State<NotePage> {
     }
   }
 
+  late StompClient stompClient;
+  void connect() {
+    stompClient = StompClient(
+      config: StompConfig(
+        // url: 'ws://localhost:8080/ws-stomp',
+        url: 'ws://10.0.2.2:8080/ws-stomp',
+        onConnect: (StompFrame frame) {
+          log('Connected to WebSocket');
+          if (myId != null) {
+            // 메시지 구독
+            stompClient.subscribe(
+              destination: '/topic/user/$myId',
+              callback: (StompFrame frame) {
+                if (frame.body != null) {
+                  final parsedData =
+                      jsonDecode(frame.body!) as Map<String, dynamic>;
+                  log("새로운 쪽지 목록 업데이트 데이터: $parsedData");
+                  if (parsedData['type'] == 'NOTE') {
+                    setState(() {
+                      // 새로운 쪽지 추가
+                      _notes.add(Note(
+                        noteId: parsedData['message']['noteId'],
+                        aptId: parsedData['message']['aptId'],
+                        aptName: parsedData['message']['aptName'],
+                        phoneNumber: parsedData['message']['phoneNumber'],
+                        noteText: parsedData['message']['noteText'],
+                        regDate: DateTime.parse(parsedData['message']
+                                ['regDate'] ??
+                            DateTime.now().toIso8601String()),
+                        isRead: false,
+                      ));
+
+                      _notes = List.from(_notes)
+                        ..sort((a, b) => b.regDate.compareTo(a.regDate));
+                    });
+                  }
+                }
+              },
+            );
+          }
+        },
+        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
+        onDisconnect: (StompFrame frame) => log('Disconnected'),
+      ),
+    );
+
+    // WebSocket 연결 시작
+    stompClient.activate();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadMyIdAndMyName();
+    connect();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _loadNotes();
+  }
+
+  void disconnect() {
+    if (stompClient.connected) {
+      stompClient.deactivate();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    disconnect();
   }
 
   @override

@@ -11,7 +11,7 @@ class ChatRoomProvider with ChangeNotifier {
     _chatRooms = await DatabaseHelper().getChatRooms();
     for (var chatRoom in _chatRooms) {
       print(
-          'ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.dateTime}');
+          'ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
     }
     notifyListeners();
     return _chatRooms;
