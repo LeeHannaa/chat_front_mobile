@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:chat_application/apis/noteApi.dart';
 import 'package:chat_application/model/model_apt.dart';
 import 'package:chat_application/src/data/keyData.dart';
@@ -9,7 +8,6 @@ import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
 import '../component/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'package:http/http.dart' as http;
 
 class AptDetailPage extends StatefulWidget {

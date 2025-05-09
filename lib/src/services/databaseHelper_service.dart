@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:chat_application/model/model_chatroom.dart';
 import 'package:chat_application/model/model_message.dart';
 import 'package:path/path.dart';
@@ -95,7 +96,7 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [roomId],
     );
-    print("해당 채팅방 삭제 완료!");
+    log("해당 채팅방 삭제 완료!");
   }
 
   Future<void> updateLastMessages() async {

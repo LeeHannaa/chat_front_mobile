@@ -4,7 +4,6 @@ import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
 import '../../format/formatDate.dart';
 
 class RoomBox extends StatefulWidget {
@@ -67,6 +66,7 @@ class _RoomBoxState extends State<RoomBox> {
         ),
       ),
       child: InkWell(
+        // TODO : 이거를 RoomBox를 선언하는 페이지에서 처리
         onTap: () async {
           final result = await context.push('/chat', extra: {
             'id': widget.chatRoomId,
@@ -77,7 +77,6 @@ class _RoomBoxState extends State<RoomBox> {
             // 여기서 새로고침 로직 실행
             await widget.loadChatRooms();
           }
-
           // 채팅방에서 돌아오면 setState로 갱신
           if (mounted) {
             setState(() {

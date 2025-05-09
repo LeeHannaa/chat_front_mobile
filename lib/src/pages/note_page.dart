@@ -1,14 +1,9 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:chat_application/apis/noteApi.dart';
 import 'package:chat_application/model/model_note.dart';
 import 'package:chat_application/src/component/noteDialog.dart';
+import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
-import 'package:go_router/go_router.dart';
-import 'package:stomp_dart_client/stomp_dart_client.dart';
-
 import '../data/keyData.dart';
 
 class NotePage extends StatefulWidget {
@@ -24,115 +19,68 @@ class _NotePageState extends State<NotePage> {
   Future<void> _loadMyIdAndMyName() async {
     myId = await SharedPreferencesHelper.getMyId();
     myName = await SharedPreferencesHelper.getMyName();
+    _loadNotes();
   }
 
   late List<Note> _notes = [];
   Future<void> _loadNotes() async {
-    try {
-      List<Note> noteList = await fetchNoteList(myId!);
-      setState(() {
-        _notes = noteList;
-      });
-    } catch (e) {
-      log('노트 불러오기 실패: $e');
-    }
+    List<Note> noteList = await fetchNoteList(myId!);
+    setState(() {
+      _notes = noteList;
+    });
   }
 
   Future<void> _readNotes(int noteId, int index) async {
-    try {
-      await readNote(myId!, noteId);
-      setState(() {
-        _notes[index] = _notes[index].copyWith(isRead: true);
-      });
-    } catch (e) {
-      log('노트 불러오기 실패: $e');
-    }
+    await readNote(myId!, noteId);
+    setState(() {
+      _notes[index] = _notes[index].copyWith(isRead: true);
+    });
   }
 
   Future<void> _deleteNotes(int noteId, int index) async {
-    try {
-      await deleteNoteRecord(noteId, myId!);
-      setState(() {
-        _notes.removeAt(index);
-      });
-    } catch (e) {
-      log('노트 불러오기 실패: $e');
-    }
+    await deleteNoteRecord(noteId, myId!);
+    setState(() {
+      _notes.removeAt(index);
+    });
   }
 
-  late StompClient stompClient;
-  void connect() {
-    stompClient = StompClient(
-      config: StompConfig(
-        // url: 'ws://localhost:8080/ws-stomp',
-        url: 'ws://10.0.2.2:8080/ws-stomp',
-        onConnect: (StompFrame frame) {
-          log('Connected to WebSocket');
-          if (myId != null) {
-            // 메시지 구독
-            stompClient.subscribe(
-              destination: '/topic/user/$myId',
-              callback: (StompFrame frame) {
-                if (frame.body != null) {
-                  final parsedData =
-                      jsonDecode(frame.body!) as Map<String, dynamic>;
-                  log("새로운 쪽지 목록 업데이트 데이터: $parsedData");
-                  if (parsedData['type'] == 'NOTE') {
-                    setState(() {
-                      // 새로운 쪽지 추가
-                      _notes.add(Note(
-                        noteId: parsedData['message']['noteId'],
-                        aptId: parsedData['message']['aptId'],
-                        aptName: parsedData['message']['aptName'],
-                        phoneNumber: parsedData['message']['phoneNumber'],
-                        noteText: parsedData['message']['noteText'],
-                        regDate: DateTime.parse(parsedData['message']
-                                ['regDate'] ??
-                            DateTime.now().toIso8601String()),
-                        isRead: false,
-                      ));
-
-                      _notes = List.from(_notes)
-                        ..sort((a, b) => b.regDate.compareTo(a.regDate));
-                    });
-                  }
-                }
-              },
-            );
-          }
-        },
-        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
-        onDisconnect: (StompFrame frame) => log('Disconnected'),
-      ),
-    );
-
-    // WebSocket 연결 시작
-    stompClient.activate();
-  }
+  final WebSocketService _socketService = WebSocketService();
 
   @override
   void initState() {
     super.initState();
     _loadMyIdAndMyName();
-    connect();
+    _socketService.setMessageHandler((message) {
+      if (message['type'] == 'NOTE') {
+        // 화면 상태 갱신
+        setState(() {
+          // 새로운 쪽지 추가
+          _notes.add(Note(
+            noteId: message['message']['noteId'],
+            aptId: message['message']['aptId'],
+            aptName: message['message']['aptName'],
+            phoneNumber: message['message']['phoneNumber'],
+            noteText: message['message']['noteText'],
+            regDate: DateTime.parse(message['message']['regDate'] ??
+                DateTime.now().toIso8601String()),
+            isRead: false,
+          ));
+
+          _notes = List.from(_notes)
+            ..sort((a, b) => b.regDate.compareTo(a.regDate));
+        });
+      }
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadNotes();
-  }
-
-  void disconnect() {
-    if (stompClient.connected) {
-      stompClient.deactivate();
-    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    disconnect();
   }
 
   @override

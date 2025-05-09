@@ -1,5 +1,6 @@
+import 'dart:developer';
 import 'package:chat_application/model/model_chatroom.dart';
-import 'package:chat_application/src/services/DatabaseHelper.dart';
+import 'package:chat_application/src/services/databaseHelper_service.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoomProvider with ChangeNotifier {
@@ -10,8 +11,7 @@ class ChatRoomProvider with ChangeNotifier {
   Future<List<ChatRoom>> loadChatRooms() async {
     _chatRooms = await DatabaseHelper().getChatRooms();
     for (var chatRoom in _chatRooms) {
-      print(
-          'ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
+      log('ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
     }
     notifyListeners();
     return _chatRooms;

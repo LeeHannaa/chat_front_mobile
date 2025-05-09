@@ -1,8 +1,6 @@
 import 'dart:developer';
-
 import 'package:chat_application/apis/chatApi.dart';
 import 'package:flutter/material.dart';
-
 import '../../format/formatDate.dart';
 
 class ChatBox extends StatefulWidget {
