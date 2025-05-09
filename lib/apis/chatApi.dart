@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../model/model_chatroom.dart';
@@ -17,6 +16,7 @@ Future<List<ChatRoom>> fetchChatRooms(int myId) async {
         .sort((a, b) => b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
 
     log(response.body);
+
     return chatRooms;
   } else {
     log('Failed to load data: ${response.statusCode}');

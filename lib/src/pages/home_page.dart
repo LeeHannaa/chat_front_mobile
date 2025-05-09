@@ -1,11 +1,10 @@
 import 'dart:developer';
-
 import 'package:chat_application/firebase_config.dart';
 import 'package:chat_application/src/data/keyData.dart';
+import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../apis/userApi.dart';
 
 class HomePage extends StatefulWidget {
@@ -28,6 +27,8 @@ class _HomePageState extends State<HomePage> {
       this.myId = myId; // 데이터 저장 후 UI 갱신
       this.myName = myName;
     });
+    // WebSocket 연결 (로그인 후 소켓 연결은 한번만!)
+    WebSocketService().connect(myId);
   }
 
   Future<void> _loadMyIdAndMyName() async {
@@ -127,7 +128,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () async {
                 await requestForToken(myId);
               },
-              child: Text('FCM 토큰 받기'),
+              child: const Text('FCM 토큰 받기'),
             ),
             const SizedBox(height: 20),
             (myId != null && myName != null)

@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../model/model_chatroom.dart';
 
 final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
 
@@ -30,7 +29,7 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
       .get(Uri.parse('$apiAddress/chatmsg/apt/find/list/$aptId?myId=$myId'));
 
   if (response.statusCode == 200) {
-    log("채팅방 입장했을 때 정보 받아오기 : " + response.body);
+    log("채팅방 입장했을 때 정보 받아오기 : ${response.body}");
     var decodedResponse = json.decode(response.body);
     return decodedResponse;
   } else {

@@ -36,8 +36,8 @@ Future<void> sendFcmToken(int myId, String fcmToken) async {
   );
 
   if (response.statusCode == 200) {
-    print("FCM 토큰 등록 성공");
+    log("FCM 토큰 등록 성공");
   } else {
-    print("FCM 토큰 등록 실패: ${response.body}");
+    log("FCM 토큰 등록 실패: ${response.body}");
   }
 }

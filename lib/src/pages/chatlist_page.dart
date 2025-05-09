@@ -1,13 +1,10 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:chat_application/src/data/keyData.dart';
 import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:stomp_dart_client/stomp_dart_client.dart';
-
 import '../../apis/chatApi.dart';
 import '../../model/model_chatroom.dart';
 import '../component/chatListPage/roomBoxComponent.dart';
@@ -44,73 +41,43 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
     });
   }
 
-  late StompClient stompClient;
-  void connect() {
-    stompClient = StompClient(
-      config: StompConfig(
-        // url: 'ws://localhost:8080/ws-stomp',
-        url: 'ws://10.0.2.2:8080/ws-stomp',
-        onConnect: (StompFrame frame) {
-          log('Connected to WebSocket');
-          if (myId != null) {
-            // 메시지 구독
-            stompClient.subscribe(
-              destination: '/topic/user/$myId', // 받는 사람이 myId인 경우 구독
-              callback: (StompFrame frame) {
-                if (frame.body != null) {
-                  final parsedData =
-                      jsonDecode(frame.body!) as Map<String, dynamic>;
-                  log("새로운 채팅 목록 업데이트 데이터: $parsedData");
-                  if (parsedData['type'] == 'CHATLIST') {
-                    setState(() {
-                      int index = _data.indexWhere(
-                          (chat) => chat.id == parsedData['message']['roomId']);
-                      if (index != -1) {
-                        _data[index] = _data[index].copyWith(
-                            lastmsg: parsedData['message']['msg'],
-                            updateLastMsgTime: DateTime.parse(
-                                parsedData['message']['updateLastMsgTime']),
-                            unreadCount: parsedData['message']['unreadCount']);
-                      } else {
-                        // 새로운 채팅방 추가
-                        _data.add(ChatRoom(
-                          id: parsedData['message']['roomId'],
-                          name: parsedData['message']['chatName'],
-                          lastmsg: parsedData['message']['msg'],
-                          num: parsedData['message']['memberNum'] ?? 2,
-                          updateLastMsgTime: DateTime.parse(
-                              parsedData['message']['updateLastMsgTime']),
-                          unreadCount: parsedData['message']['unreadCount'],
-                        ));
-                      }
-                      _data = List.from(_data)
-                        ..sort((a, b) =>
-                            b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
-                    });
-                  }
-                }
-              },
-            );
-          }
-        },
-        onWebSocketError: (dynamic error) => log('WebSocket Error: $error'),
-        onDisconnect: (StompFrame frame) => log('Disconnected'),
-      ),
-    );
-
-    // WebSocket 연결 시작
-    stompClient.activate();
-  }
-
-  void disconnect() {
-    stompClient.deactivate();
-  }
+  final WebSocketService _socketService = WebSocketService();
 
   @override
   void initState() {
     super.initState();
-    _loadChatRooms();
-    connect();
+    _loadChatRooms(); // 채팅방 목록 불러오기
+    _socketService.setMessageHandler((message) {
+      //
+      if (message['type'] == 'CHATLIST') {
+        setState(() {
+          int index = _data
+              .indexWhere((chat) => chat.id == message['message']['roomId']);
+          // 채팅방이 업데이트 된 경우
+          if (index != -1) {
+            _data[index] = _data[index].copyWith(
+                lastmsg: message['message']['lastmsg'],
+                updateLastMsgTime:
+                    DateTime.parse(message['message']['updateLastMsgTime']),
+                unreadCount: message['message']['unreadCount']);
+          } else {
+            // 새로운 채팅방 추가
+            _data.add(ChatRoom(
+              id: message['message']['roomId'],
+              name: message['message']['name'],
+              lastmsg: message['message']['lastmsg'],
+              num: message['message']['memberNum'] ?? 2,
+              updateLastMsgTime:
+                  DateTime.parse(message['message']['updateLastMsgTime']),
+              unreadCount: message['message']['unreadCount'],
+            ));
+          }
+          _data = List.from(_data)
+            ..sort(
+                (a, b) => b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
+        });
+      }
+    });
   }
 
   bool isLoading = false;
@@ -119,7 +86,6 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-    disconnect();
   }
 
   bool refreshTrigger = false;
@@ -148,6 +114,8 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
             itemCount: _data.length,
             itemBuilder: (context, index) {
               final chat = _data[index];
+              // TODO : 여기서 터치이벤트 처리
+              // 제스처디렉터
               return RoomBox(
                 key: ValueKey(chat.updateLastMsgTime),
                 loadChatRooms: _loadChatRooms,
