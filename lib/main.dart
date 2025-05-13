@@ -1,7 +1,10 @@
 import 'package:chat_application/fcmAlram.dart';
 import 'package:chat_application/firebase_config.dart';
-import 'package:chat_application/src/providers/chatMessage_provider.dart';
-import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:chat_application/src/providers/chat_message_provider.dart';
+import 'package:chat_application/src/providers/chatroom_provider.dart';
+import 'package:chat_application/src/providers/note_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chat_message_sqflite_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +26,11 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ChatmessageProvider()),
+        ChangeNotifierProvider(create: (_) => ChatmessageSqfliteProvider()),
+        ChangeNotifierProvider(create: (_) => ChatRoomSqfliteProvider()),
+        ChangeNotifierProvider(create: (_) => ChatMessageProvider()),
         ChangeNotifierProvider(create: (_) => ChatRoomProvider()),
+        ChangeNotifierProvider(create: (_) => NoteProvider()),
       ],
       child: const MyApp(),
     ),

@@ -1,33 +1,58 @@
 import 'dart:developer';
+
+import 'package:chat_application/apis/chatApi.dart';
 import 'package:chat_application/model/model_chatroom.dart';
-import 'package:chat_application/src/services/databaseHelper_service.dart';
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';
 
-class ChatRoomProvider with ChangeNotifier {
-  List<ChatRoom> _chatRooms = [];
+class ChatRoomProvider extends ChangeNotifier {
+  int? myId;
 
+  final List<ChatRoom> _chatRooms = List.empty(growable: true);
   List<ChatRoom> get chatRooms => _chatRooms;
 
-  Future<List<ChatRoom>> loadChatRooms() async {
-    _chatRooms = await DatabaseHelper().getChatRooms();
-    for (var chatRoom in _chatRooms) {
-      log('ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
+  Future<void> loadChatRooms() async {
+    myId ??= await SharedPreferencesHelper.getMyId();
+    try {
+      final response = await fetchChatRooms(myId!);
+      _chatRooms.clear();
+      _chatRooms.addAll(response);
+      notifyListeners();
+    } catch (e) {
+      // _chatRooms =
+      //     await Provider.of<ChatRoomSqfliteProvider>()
+      //         .loadChatRooms();
+      log('Error loading chat rooms: $e');
     }
-    notifyListeners();
-    return _chatRooms;
   }
 
-  Future<void> addChatRoom(ChatRoom chatRoom) async {
-    await DatabaseHelper().insertChatRoom(chatRoom);
-    await loadChatRooms();
-  }
+  void handleSocketMessage(Map<String, dynamic> message) {
+    if (message['type'] == 'CHATLIST') {
+      int index = _chatRooms
+          .indexWhere((chat) => chat.id == message['message']['roomId']);
 
-  Future<void> updateLastMessages() async {
-    await DatabaseHelper().updateLastMessages();
-  }
+      if (index != -1) {
+        _chatRooms[index] = _chatRooms[index].copyWith(
+          lastmsg: message['message']['lastMsg'],
+          updateLastMsgTime:
+              DateTime.parse(message['message']['updateLastMsgTime']),
+          unreadCount: message['message']['unreadCount'],
+        );
+      } else {
+        _chatRooms.add(ChatRoom(
+          id: message['message']['roomId'],
+          name: message['message']['name'],
+          lastmsg: message['message']['lastMsg'],
+          num: message['message']['memberNum'] ?? 2,
+          updateLastMsgTime:
+              DateTime.parse(message['message']['updateLastMsgTime']),
+          unreadCount: message['message']['unreadCount'],
+        ));
+      }
 
-  Future<void> removeChatRoom(int roomId) async {
-    await DatabaseHelper().deleteChatRoomAndMessages(roomId);
-    // await loadChatRooms();
+      _chatRooms
+          .sort((a, b) => b.updateLastMsgTime.compareTo(a.updateLastMsgTime));
+      notifyListeners();
+    }
   }
 }

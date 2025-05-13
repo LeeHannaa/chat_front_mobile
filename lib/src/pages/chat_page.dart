@@ -3,12 +3,12 @@ import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:chat_application/apis/chatMessageApi.dart';
 import 'package:chat_application/model/model_chatroom.dart';
-import 'package:chat_application/src/providers/chatMessage_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chat_message_sqflite_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:chat_application/src/component/chatPage/chatBoxComponent.dart';
 import 'package:chat_application/src/component/chatPage/chatInputField.dart';
 import 'package:chat_application/src/data/keyData.dart';
-import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:chat_application/model/model_message.dart';
@@ -74,7 +74,8 @@ class _ChatPageState extends State<ChatPage> {
                       final receivedChat = Message.fromJson(messagePayload);
                       messages.add(receivedChat);
                       // sqlite에 저장
-                      Provider.of<ChatmessageProvider>(context, listen: false)
+                      Provider.of<ChatmessageSqfliteProvider>(context,
+                              listen: false)
                           .addChatMessages(receivedChat);
                     });
                   } else {
@@ -139,7 +140,8 @@ class _ChatPageState extends State<ChatPage> {
                       final receivedChat = Message.fromJson(messagePayload);
                       messages.add(receivedChat);
                       // sqlite에 저장
-                      Provider.of<ChatmessageProvider>(context, listen: false)
+                      Provider.of<ChatmessageSqfliteProvider>(context,
+                              listen: false)
                           .addChatMessages(receivedChat);
                     });
                   } else {
@@ -160,7 +162,8 @@ class _ChatPageState extends State<ChatPage> {
                         }
                       });
                       // sqlite에 저장
-                      Provider.of<ChatmessageProvider>(context, listen: false)
+                      Provider.of<ChatmessageSqfliteProvider>(context,
+                              listen: false)
                           .addChatMessages(receivedChat);
                     });
                   } else {
@@ -198,9 +201,9 @@ class _ChatPageState extends State<ChatPage> {
             await fetchChatsByRoom(roomId!, myId!, context); // List 형태
       } catch (e) {
         // sqlite에서 데이터 가져오기
-        messageList =
-            await Provider.of<ChatmessageProvider>(context, listen: false)
-                .loadChatMessages(roomId!);
+        messageList = await Provider.of<ChatmessageSqfliteProvider>(context,
+                listen: false)
+            .loadChatMessages(roomId!);
         connectServer = false;
         developer.log('Error loading chat rooms: $e');
       }
@@ -247,7 +250,7 @@ class _ChatPageState extends State<ChatPage> {
               DateTime.parse(messageList[0]['updateLastMsgTime']),
         );
         // sqlite에 저장
-        Provider.of<ChatRoomProvider>(context, listen: false)
+        Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
             .addChatRoom(newChatRoom);
       }
     }
@@ -286,7 +289,7 @@ class _ChatPageState extends State<ChatPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
               // sqlite에서 lastmsg 데이터 업뎃
-              Provider.of<ChatRoomProvider>(context, listen: false)
+              Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
                   .updateLastMessages();
               Navigator.pop(context, true);
             }),
@@ -312,15 +315,8 @@ class _ChatPageState extends State<ChatPage> {
                       alignment: Alignment.centerLeft,
                       child: ChatBox(
                           myId: myId!,
-                          writerId: message.writerId,
-                          writerName: message.name,
-                          message: message.message ?? '',
-                          type: message.type ?? '',
-                          createTime: message.createTime,
-                          unreadCount: message.unreadCount ?? 0,
-                          delete: message.delete ?? false,
                           roomId: roomId!,
-                          msgId: message.id,
+                          chatmessage: message,
                           hiddenBtId: hiddenBtId),
                     ),
                   );
