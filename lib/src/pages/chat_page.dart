@@ -113,8 +113,10 @@ class _ChatPageState extends State<ChatPage> {
                         .indexWhere((message) => message.id == deleteMsgId);
                     if (index != -1) {
                       // messages[index].message = "삭제된 메시지입니다.";
+                      developer.log(
+                          "index확인하기 : $index, 리스트 길이 확인하기 : ${messages.length}");
+                      // messages[index].delete = true;
                       messages.removeAt(index);
-                      messages[index].delete = true;
                     }
                   });
                 } else if (data['type'] == 'LEAVE') {

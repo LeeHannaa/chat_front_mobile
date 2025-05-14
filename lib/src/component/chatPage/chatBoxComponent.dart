@@ -120,17 +120,15 @@ class _ChatBoxState extends State<ChatBox> {
                                 : ElevatedButton(
                                     onPressed: () async {
                                       try {
-                                        int unreadCount =
-                                            await postInviteUserInGroupChat(
-                                                widget.roomId,
-                                                widget.chatmessage.writerId,
-                                                widget.chatmessage.id);
+                                        await postInviteUserInGroupChat(
+                                            widget.roomId,
+                                            widget.chatmessage.writerId,
+                                            widget.chatmessage.id);
                                         setState(() {
                                           widget.hiddenBtId
                                               .add(widget.chatmessage.id);
                                         });
                                         // 초대된 후 unreadCount를 사용하여 추가 로직 처리
-                                        log('Unread Count: $unreadCount');
                                       } catch (e) {
                                         log('Error occurred: $e');
                                         // 실패 처리 로직 (예: 사용자에게 알림 표시)
