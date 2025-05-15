@@ -15,9 +15,11 @@ class ChatPage extends StatefulWidget {
   const ChatPage(
       {super.key,
       required this.id,
+      required this.myId,
       required this.chatName,
       required this.from});
   final int id; // 매물 id이거나 roomId이거나
+  final int myId;
   final String chatName;
   final String from;
 
@@ -33,38 +35,31 @@ class _ChatPageState extends State<ChatPage> {
 
   // late StompClient stompClient;
   bool isBtActive = false;
-  int? myId;
   String? myName;
 
   Future<void> _loadMyIdAndMyName() async {
-    myId = await SharedPreferencesHelper.getMyId();
     myName = await SharedPreferencesHelper.getMyName();
   }
 
   Future<void> _initializeChat() async {
     await _loadMyIdAndMyName();
-
     // 소켓 구독 경로 추가 포함
-    if (myId != null) {
-      final chatMessageProvider =
-          Provider.of<ChatMessageProvider>(context, listen: false);
-      chatMessageProvider.loadChatMessages(
-        myId!,
-        widget.id,
-        context,
-        widget.from,
-        widget.id,
-        chatInputScrollController,
-      );
-      chatRoomId = chatMessageProvider.roomId;
-      _socketService.setMessageHandler((message) {
-        chatMessageProvider.handleSocketMessage(message);
-        // 메시지가 화면에 추가된 후 스크롤 이동
-        moveScroll(chatInputScrollController);
-      });
-    } else {
-      developer.log("❗ myId가 null입니다. 채팅 로드 실패");
-    }
+    final chatMessageProvider =
+        Provider.of<ChatMessageProvider>(context, listen: false);
+    chatMessageProvider.loadChatMessages(
+      widget.myId,
+      widget.id,
+      context,
+      widget.from,
+      widget.id,
+      chatInputScrollController,
+    );
+    chatRoomId = chatMessageProvider.roomId;
+    _socketService.setMessageHandler((message) {
+      chatMessageProvider.handleSocketMessage(message);
+      // 메시지가 화면에 추가된 후 스크롤 이동
+      moveScroll(chatInputScrollController);
+    });
   }
 
   late StompClient stompClient;
@@ -126,13 +121,13 @@ class _ChatPageState extends State<ChatPage> {
                     itemBuilder: (context, index) {
                       final message = chatMessages[index];
                       return GestureDetector(
-                        onLongPress: () => myId == message.writerId
+                        onLongPress: () => widget.myId == message.writerId
                             ? _showDeleteOptions(context, message, provider)
                             : (),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: ChatBox(
-                              myId: myId!,
+                              myId: widget.myId,
                               roomId: provider.roomId,
                               chatmessage: message,
                               hiddenBtId: hiddenBtId),
@@ -171,7 +166,7 @@ class _ChatPageState extends State<ChatPage> {
         'roomId': roomId,
         'chatName': widget.chatName,
         'msg': message,
-        'writerId': myId!,
+        'writerId': widget.myId,
         'writerName': myName!,
         'regDate': DateTime.now().toIso8601String(),
       };
@@ -204,14 +199,14 @@ class _ChatPageState extends State<ChatPage> {
                   //   _deleteForMe(message, myId!); // API 연결
                   // },
                   ),
-              message.writerId == myId && !message.delete!
+              message.writerId == widget.myId && !message.delete!
                   // && isWithin5Minutes(message.createTime)
                   ? ListTile(
                       leading: const Icon(Icons.delete_forever),
                       title: const Text("전체에게 삭제"),
                       onTap: () {
                         Navigator.pop(context);
-                        provider.deleteForAll(message, myId!); // API 연결
+                        provider.deleteForAll(message, widget.myId); // API 연결
                       },
                     )
                   : const SizedBox()
