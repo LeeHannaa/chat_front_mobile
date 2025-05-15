@@ -1,163 +1,182 @@
-import 'dart:developer' as developer;
-import 'dart:math';
+import 'dart:developer';
+import 'dart:math' as math;
 import 'package:chat_application/apis/chatApi.dart';
 import 'package:chat_application/apis/chatMessageApi.dart';
-import 'package:chat_application/model/model_chatroom.dart';
 import 'package:chat_application/model/model_message.dart';
-import 'package:chat_application/src/data/keyData.dart';
+import 'package:chat_application/src/providers/sqflite/chat_message_sqflite_provider.dart';
+import 'package:chat_application/src/services/websocket_service.dart';
+import 'package:chat_application/utils/moveScroll.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatMessageProvider extends ChangeNotifier {
-  int? myId;
-  int? roomId;
+  int myId = 0;
   int? unreadCountByMe;
 
-  // var messageList = [];
+  final _messagesNoType = [];
   final List<Message> _messages = List.empty(growable: true);
   List<Message> get chatmessages => _messages;
 
-  // Future<void> loadChatMessages(int? roomId, int? aptId, String from) async {
-  //   myId ??= await SharedPreferencesHelper.getMyId();
-  //   if (from == 'chatlist') {
-  //     if (roomId != null) {
-  //       try {
-  //         final response = await fetchChatsByRoom(roomId, myId!);
-  //         messageList = response;
-  //         _messages.clear();
-  //         _messages.addAll(response);
-  //         notifyListeners();
-  //       } catch (e) {
-  //         developer.log('Error loading chatMessages by chatList: $e');
-  //       }
-  //     }
-  //   } else {
-  //     if (aptId != null) {
-  //       try {
-  //         final response = await fetchChatsByApt(aptId, myId!);
-  //         messageList = response;
-  //         _messages.clear();
-  //         _messages.addAll(response);
-  //         notifyListeners();
-  //         // roomId 설정되는 상황
-  //         roomId = _messages[0].roomId;
-  //       } catch (e) {
-  //         developer.log('Error loading chatMessages by apt: $e');
-  //       }
-  //     }
-  //   }
-  //   // 웹소켓 연결
-  //   if (_messages[0].id != null) {
-  //     // 내가 안읽은 메시지 수 가져오기
-  //     unreadCountByMe = await fetchUnreadCountByRoom(roomId!, myId!);
-  //     for (int i = _messages.length - 1;
-  //         i > _messages.length - unreadCountByMe! - 1;
-  //         i--) {
-  //       if (_messages[i].unreadCount == 0) break;
-  //       _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
-  //     }
-  //     notifyListeners();
-  //   } else {
-  //     if (roomId != null) {
-  //       final newChatRoom = ChatRoom(
-  //         id: roomId,
-  //         name: messageList[0]['roomName'],
-  //         lastmsg: '',
-  //         num: messageList[0]['memberNum'],
-  //         updateLastMsgTime:
-  //             DateTime.parse(messageList[0]['updateLastMsgTime']),
-  //       );
-  //       // sqlite에 저장
-  //       // Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
-  //       //     .addChatRoom(newChatRoom);
-  //     }
-  //   }
-  // }
+  var _roomId = 0;
+  int get roomId => _roomId;
 
-  // void handleSocketMessage(Map<String, dynamic> data) {
-  //   if (data['type'] == 'CHAT') {
-  //     // 일반 채팅 메시지 처리
-  //     final messagePayload = data['message'];
-  //     if (messagePayload is Map<String, dynamic>) {
-  //       final receivedChat = Message.fromJson(messagePayload);
-  //       _messages.add(receivedChat);
-  //       // sqlite에 저장
-  //       // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
-  //       //     .addChatMessages(receivedChat);
-  //       notifyListeners();
-  //     } else {
-  //       developer.log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
-  //     }
-  //   } else if (data['type'] == 'INFO') {
-  //     // 누가 들어왔다는 알림 메시지 처리
-  //     developer.log("상대방 입장!!!!!!!, 읽음처리해야할 메시지 개수 : ");
-  //     int changeNumber = int.parse(data['message'].toString());
-  //     developer.log(data['message'].toString());
-  //     for (int i = _messages.length - 1;
-  //         i > max(0, _messages.length - changeNumber - 1);
-  //         i--) {
-  //       if (_messages[i].type == 'TEXT') {
-  //         if (_messages[i].unreadCount == 0) break;
-  //         _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
-  //       }
-  //     }
-  //     notifyListeners();
-  //   } else if (data['type'] == 'OUT') {
-  //     // 누가 나갔다는 알림 메시지 처리
-  //     if (data['message'] == "상대방 퇴장") {
-  //       developer.log("상대방 퇴장!!!!!!!");
-  //     }
-  //   } else if (data['type'] == 'DELETE') {
-  //     // 메시지가 삭제되었다!!
-  //     String deleteMsgId = data['messageId'];
-  //     developer.log("특정 메시지 삭제!! $deleteMsgId");
-  //     int index = _messages.indexWhere((message) => message.id == deleteMsgId);
-  //     if (index != -1) {
-  //       // messages[index].message = "삭제된 메시지입니다.";
-  //       _messages.removeAt(index);
-  //       _messages[index].delete = true;
-  //     }
-  //     notifyListeners();
-  //   } else if (data['type'] == 'LEAVE') {
-  //     // 유저가 채팅방을 나간 경우 실시간 알림 전달
-  //     final messagePayload = data['message'];
-  //     // 유저가 안읽은 메시지가 존재한 채 채팅방을 나간 경우
-  //     int changeNumber = int.parse(data['msgToReadCount'].toString());
-  //     developer.log(data['message'].toString());
-  //     for (int i = _messages.length - 1;
-  //         i > max(0, _messages.length - changeNumber - 1);
-  //         i--) {
-  //       if (_messages[i].type == 'TEXT') {
-  //         if (_messages[i].unreadCount == 0) break;
-  //         _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
-  //       }
-  //     }
-  //     notifyListeners();
-  //     if (messagePayload is Map<String, dynamic>) {
-  //       final receivedChat = Message.fromJson(messagePayload);
-  //       _messages.add(receivedChat);
-  //       // sqlite에 저장
-  //       // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
-  //       //     .addChatMessages(receivedChat);
-  //       notifyListeners();
-  //     } else {
-  //       developer.log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
-  //     }
-  //   } else if (data['type'] == 'INVITE') {
-  //     // 일반 채팅 메시지 처리
-  //     final messagePayload = data['message'];
-  //     if (messagePayload is Map<String, dynamic>) {
-  //       final receivedChat = Message.fromJson(messagePayload);
-  //       _messages.add(receivedChat);
-  //       if (receivedChat.beforeMsgId != null) {
-  //         hiddenBtId.add(receivedChat.beforeMsgId!);
-  //       }
-  //       // sqlite에 저장
-  //       // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
-  //       //     .addChatMessages(receivedChat);
-  //       notifyListeners();
-  //     } else {
-  //       developer.log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
-  //     }
-  //   }
-  // }
+  final Set<String> _hiddenBtId = Set<String>();
+  Set<String> get hiddenBtId => _hiddenBtId;
+
+  Future<void> loadChatMessages(int myId, int? roomId, BuildContext context,
+      String from, int? aptId, ScrollController scrollController) async {
+    myId = myId;
+    if (from == 'chatlist') {
+      _roomId = roomId!;
+      try {
+        final response = await fetchChatsByRoom(_roomId, myId, context);
+        _messagesNoType.clear();
+        _messagesNoType.addAll(response);
+      } catch (e) {
+        // api 연결 실패로 앱 내에 저장된 데이터 가져오기
+        final response = await Provider.of<ChatmessageSqfliteProvider>(context,
+                listen: false)
+            .loadChatMessages(_roomId);
+
+        _messagesNoType.clear();
+        _messagesNoType.addAll(response);
+        notifyListeners();
+        log('Error loading chat rooms: $e');
+      }
+    } else {
+      // 아파트 목록에서 채팅으로 넘어가는 경우
+      try {
+        final response = await fetchChatsByApt(myId, aptId!);
+        _messagesNoType.clear();
+        _messagesNoType.addAll(response);
+        _roomId = _messagesNoType[0]['roomId']; // roomId 저장
+        notifyListeners();
+      } catch (e) {
+        log('Error loading chat rooms by apt: $e');
+      }
+    }
+    // 채팅방 웹소켓 경로 추가
+    WebSocketService().subscribeToChatRoom(roomId!, myId);
+    if (_messagesNoType[0]['id'] != null) {
+      // messages list에 타입 변환해서 정보 담기
+      _messages.clear();
+      late List<Message> list = _messagesNoType
+          .map<Message>((json) => Message.fromJson(json))
+          .toList();
+      _messages.addAll(list);
+      notifyListeners();
+    }
+
+    // 메시지 추가 후 스크롤
+    moveScroll(scrollController);
+    // 내가 안읽은 메시지 수 가져오기
+    loadUnreadCountByRoom(myId);
+  }
+
+  void loadUnreadCountByRoom(int myId) async {
+    try {
+      unreadCountByMe = await fetchUnreadCountByRoom(_roomId, myId);
+      for (int i = _messages.length - 1;
+          i > _messages.length - unreadCountByMe! - 1;
+          i--) {
+        if (_messages[i].unreadCount == 0) break;
+        _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
+      }
+      notifyListeners();
+    } catch (e) {
+      log('Error load unread count by room: $e');
+    }
+  }
+
+  void deleteForAll(Message message, int myId) async {
+    await deleteChatMessageToAll(message.id, myId);
+
+    final index = _messages.indexOf(message);
+    if (index != -1) {
+      // messages[index] = message.copyWith(message: "삭제된 메시지입니다.", delete: true);
+      _messages.removeAt(index);
+    }
+  }
+
+  void handleSocketMessage(Map<String, dynamic> data) {
+    if (data['type'] == 'CHAT') {
+      final messagePayload = data['message'];
+      final receivedChat = Message.fromJson(messagePayload);
+      _messages.add(receivedChat);
+      notifyListeners();
+      // sqlite에 저장
+      // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+      //     .addChatMessages(receivedChat);
+    } else if (data['type'] == 'INFO') {
+      // 누가 들어왔다는 알림 메시지 처리
+      int changeNumber = int.parse(data['message'].toString());
+      log("상대방 입장!, 읽음처리해야할 메시지 개수 : $changeNumber");
+      for (int i = _messages.length - 1;
+          i > math.max(0, _messages.length - changeNumber - 1);
+          i--) {
+        if (_messages[i].type == 'TEXT') {
+          if (_messages[i].unreadCount == 0) break;
+          _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
+        }
+      }
+      notifyListeners();
+    } else if (data['type'] == 'OUT') {
+      // 누가 나갔다는 알림 메시지 처리
+      if (data['message'] == "상대방 퇴장") {
+        log("상대방 나감!");
+      }
+    } else if (data['type'] == 'DELETE') {
+      String deleteMsgId = data['messageId'];
+      log("특정 메시지 삭제!! $deleteMsgId");
+      int index = _messages.indexWhere((message) => message.id == deleteMsgId);
+      if (index != -1) {
+        _messages.removeAt(index);
+      }
+      notifyListeners();
+    } else if (data['type'] == 'LEAVE') {
+      // 유저가 채팅방을 나간 경우 실시간 알림 전달
+      final messagePayload = data['message'];
+      // 유저가 안읽은 메시지가 존재한 채 채팅방을 나간 경우
+      int changeNumber = int.parse(data['msgToReadCount'].toString());
+      // 메시지 읽음처리 (ui상)
+      for (int i = _messages.length - 1;
+          i > math.max(0, _messages.length - changeNumber - 1);
+          i--) {
+        if (_messages[i].type == 'TEXT') {
+          if (_messages[i].unreadCount == 0) break;
+          _messages[i].unreadCount = (_messages[i].unreadCount ?? 1) - 1;
+        }
+      }
+      notifyListeners();
+      // 채팅방 나갔다는 SYSTEM 메시지 저장
+      if (messagePayload is Map<String, dynamic>) {
+        final receivedChat = Message.fromJson(messagePayload);
+        _messages.add(receivedChat);
+        notifyListeners();
+        // sqlite에 저장
+        // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+        //     .addChatMessages(receivedChat);
+      } else {
+        log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+      }
+    } else if (data['type'] == 'INVITE') {
+      // 초대되었다는 SYSTEM 메시지 처리
+      final messagePayload = data['message'];
+      if (messagePayload is Map<String, dynamic>) {
+        final receivedChat = Message.fromJson(messagePayload);
+        _messages.add(receivedChat);
+        // 나갔다는 메시지에 '초대하기' 메시지가 안보이도록 처리
+        if (receivedChat.beforeMsgId != null) {
+          _hiddenBtId.add(receivedChat.beforeMsgId!);
+        }
+        // sqlite에 저장
+        // Provider.of<ChatmessageSqfliteProvider>(context,
+        //         listen: false)
+        //     .addChatMessages(receivedChat);
+        notifyListeners();
+      } else {
+        log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
+      }
+    }
+  }
 }

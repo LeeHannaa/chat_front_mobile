@@ -65,6 +65,9 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
                         });
                         if (result == true) {
                           provider.loadChatRooms();
+                          _socketService.setMessageHandler((message) {
+                            provider.handleSocketMessage(message);
+                          });
                         }
                       });
                 },
