@@ -1,43 +1,22 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:chat_application/apis/dio_client.dart';
 
-final apiAddress = dotenv.get('API_ANDROID_ADDRESS');
 Future<Map<String, dynamic>> fetchUserInfo(int myId) async {
   try {
-    final url = Uri.parse('$apiAddress/user/info?myId=$myId');
-
-    final response = await http.get(
-      url,
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Network response was not ok');
-    }
-
-    final data = json.decode(response.body) as Map<String, dynamic>;
-    log('유저 정보 : $data');
+    final response = await DioClient.dio.get('/user/info?myId=$myId');
+    final data = response.data as Map<String, dynamic>;
     return data;
-  } catch (error) {
-    log('API 요청 실패: $error');
-    rethrow;
+  } catch (e) {
+    throw Exception('Failed to load user info');
   }
 }
 
 Future<void> sendFcmToken(int myId, String fcmToken) async {
-  final url = Uri.parse('$apiAddress/fcmtoken/save');
-
-  final response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'userId': myId, 'fcmToken': fcmToken}),
-  );
-
-  if (response.statusCode == 200) {
-    log("FCM 토큰 등록 성공");
-  } else {
-    log("FCM 토큰 등록 실패: ${response.body}");
+  try {
+    await DioClient.dio.post(
+      '/fcmtoken/save',
+      data: {'userId': myId, 'fcmToken': fcmToken},
+    );
+  } catch (e) {
+    throw Exception('Failed to save the fcm token');
   }
 }

@@ -2,7 +2,7 @@ import 'package:chat_application/model/model_message.dart';
 import 'package:chat_application/src/services/databaseHelper_service.dart';
 import 'package:flutter/material.dart';
 
-class ChatmessageProvider with ChangeNotifier {
+class ChatmessageSqfliteProvider with ChangeNotifier {
   List _chatMessage = [];
 
   List get chatMessage => _chatMessage;

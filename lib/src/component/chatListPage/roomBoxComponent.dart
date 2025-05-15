@@ -1,29 +1,19 @@
 import 'package:chat_application/apis/chatApi.dart';
+import 'package:chat_application/model/model_chatroom.dart';
 import 'package:chat_application/src/data/keyData.dart';
-import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../format/formatDate.dart';
 
 class RoomBox extends StatefulWidget {
-  final Future<void> Function() loadChatRooms;
-  final int chatRoomId;
-  final String chatName;
-  final String lastMsg;
-  final int chatNum;
-  final DateTime updateLastMsgTime;
-  int? unreadCount;
+  final ChatRoom chatroom;
+  final VoidCallback? onTap;
 
-  RoomBox({
+  const RoomBox({
     Key? key,
-    required this.loadChatRooms,
-    required this.chatRoomId,
-    required this.chatName,
-    required this.lastMsg,
-    required this.chatNum,
-    required this.updateLastMsgTime,
-    this.unreadCount,
+    required this.chatroom,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -39,7 +29,7 @@ class _RoomBoxState extends State<RoomBox> {
 
   Future<void> leaveChatRoom(int roomId) async {
     _loadMyId();
-    await Provider.of<ChatRoomProvider>(context, listen: false)
+    await Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
         .removeChatRoom(roomId);
     deleteChatRoom(roomId, myId!);
   }
@@ -47,10 +37,10 @@ class _RoomBoxState extends State<RoomBox> {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(widget.chatRoomId.toString()),
+      key: Key(widget.chatroom.id.toString()),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
-        leaveChatRoom(widget.chatRoomId);
+        leaveChatRoom(widget.chatroom.id);
       },
       background: Container(
         color: Colors.red, // 나가기 버튼이 보일 배경색
@@ -66,24 +56,7 @@ class _RoomBoxState extends State<RoomBox> {
         ),
       ),
       child: InkWell(
-        // TODO : 이거를 RoomBox를 선언하는 페이지에서 처리
-        onTap: () async {
-          final result = await context.push('/chat', extra: {
-            'id': widget.chatRoomId,
-            'name': widget.chatName,
-            'from': 'chatlist',
-          });
-          if (result == true) {
-            // 여기서 새로고침 로직 실행
-            await widget.loadChatRooms();
-          }
-          // 채팅방에서 돌아오면 setState로 갱신
-          if (mounted) {
-            setState(() {
-              widget.unreadCount = 0;
-            });
-          }
-        },
+        onTap: widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
           decoration: BoxDecoration(
@@ -93,8 +66,8 @@ class _RoomBoxState extends State<RoomBox> {
           child: Row(
             children: [
               CircleAvatar(
-                  child: widget.chatNum > 1
-                      ? widget.chatNum > 2
+                  child: widget.chatroom.num > 1
+                      ? widget.chatroom.num > 2
                           ? const Icon(Icons.group)
                           : const Icon(Icons.person)
                       : const Icon(Icons.person_off)),
@@ -107,20 +80,20 @@ class _RoomBoxState extends State<RoomBox> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          widget.chatName,
+                          widget.chatroom.name,
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        widget.chatNum > 2
+                        widget.chatroom.num > 2
                             ? Text(
-                                widget.chatNum.toString(),
+                                widget.chatroom.num.toString(),
                                 style: const TextStyle(
                                     color: Color.fromARGB(255, 141, 141, 141),
                                     fontSize: 10),
                               )
                             : const SizedBox(),
                         Text(
-                          formatDate(widget.updateLastMsgTime),
+                          formatDate(widget.chatroom.updateLastMsgTime),
                           style: const TextStyle(
                               color: Color.fromARGB(255, 83, 83, 83),
                               fontSize: 12),
@@ -132,12 +105,13 @@ class _RoomBoxState extends State<RoomBox> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            widget.lastMsg,
+                            widget.chatroom.lastmsg,
                             style: TextStyle(
                                 color: Colors.grey.shade600, fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          widget.unreadCount == null || widget.unreadCount == 0
+                          widget.chatroom.unreadCount == null ||
+                                  widget.chatroom.unreadCount == 0
                               ? const SizedBox.shrink()
                               : Container(
                                   padding: const EdgeInsets.all(5),
@@ -147,7 +121,7 @@ class _RoomBoxState extends State<RoomBox> {
                                     shape: BoxShape.circle, // 원형
                                   ),
                                   child: Text(
-                                    widget.unreadCount.toString(),
+                                    widget.chatroom.unreadCount.toString(),
                                     style: const TextStyle(
                                       color: Colors.white, // 글자색 흰색
                                       fontSize: 12,
