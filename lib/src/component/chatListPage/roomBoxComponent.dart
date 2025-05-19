@@ -29,6 +29,7 @@ class _RoomBoxState extends State<RoomBox> {
 
   Future<void> leaveChatRoom(int roomId) async {
     _loadMyId();
+    // sqflite에서도 방 삭제하기
     await Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
         .removeChatRoom(roomId);
     deleteChatRoom(roomId, myId!);

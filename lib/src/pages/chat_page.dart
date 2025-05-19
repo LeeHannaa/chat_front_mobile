@@ -1,12 +1,12 @@
 import 'dart:developer' as developer;
 import 'package:chat_application/src/providers/chat_message_provider.dart';
+import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:chat_application/utils/moveScroll.dart';
 import 'package:provider/provider.dart';
 import 'package:chat_application/src/component/chatPage/chatBoxComponent.dart';
 import 'package:chat_application/src/component/chatPage/chatInputField.dart';
 import 'package:chat_application/src/data/keyData.dart';
-import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:chat_application/model/model_message.dart';
@@ -56,7 +56,7 @@ class _ChatPageState extends State<ChatPage> {
     );
     chatRoomId = chatMessageProvider.roomId;
     _socketService.setMessageHandler((message) {
-      chatMessageProvider.handleSocketMessage(message);
+      chatMessageProvider.handleSocketMessage(message, context);
       // 메시지가 화면에 추가된 후 스크롤 이동
       moveScroll(chatInputScrollController);
     });
@@ -84,7 +84,7 @@ class _ChatPageState extends State<ChatPage> {
     messageController.dispose();
     chatInputScrollController.dispose();
     messageFocusNode.dispose();
-    WebSocketService().unsubscribeFromChatRoom(chatRoomId);
+    WebSocketService().unsubscribeFromChatRoom(chatRoomId, widget.myId);
     super.dispose();
   }
 
@@ -97,8 +97,9 @@ class _ChatPageState extends State<ChatPage> {
           leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () async {
-                // sqlite에서 lastmsg 데이터 업뎃
-                Provider.of<ChatRoomSqfliteProvider>(context, listen: false)
+                // sqflite에서 lastmsg 데이터 업뎃
+                await Provider.of<ChatRoomSqfliteProvider>(context,
+                        listen: false)
                     .updateLastMessages();
                 Navigator.pop(context, true);
               }),
@@ -206,7 +207,8 @@ class _ChatPageState extends State<ChatPage> {
                       title: const Text("전체에게 삭제"),
                       onTap: () {
                         Navigator.pop(context);
-                        provider.deleteForAll(message, widget.myId); // API 연결
+                        provider.deleteForAll(
+                            message, widget.myId, context); // API 연결
                       },
                     )
                   : const SizedBox()

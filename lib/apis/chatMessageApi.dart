@@ -1,8 +1,6 @@
 import 'package:chat_application/apis/dio_client.dart';
-import 'package:flutter/material.dart';
 
-Future<List> fetchChatsByRoom(
-    int roomId, int myId, BuildContext context) async {
+Future<List> fetchChatsByRoom(int roomId, int myId) async {
   try {
     final response =
         await DioClient.dio.get('/chatmsg/find/list/$roomId?myId=$myId');

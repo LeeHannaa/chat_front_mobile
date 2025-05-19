@@ -50,7 +50,8 @@ class Message {
         writerId: json['writerId'],
         roomId: json['roomId'],
         message: json['message'],
-        createTime: DateTime.parse(json['createTime']));
+        createTime: DateTime.parse(json['createTime']),
+        type: json['type'] ?? '');
   }
 
   Message copyWith({
@@ -84,5 +85,6 @@ class Message {
         "roomId": roomId,
         "message": message,
         "createTime": createTime.toIso8601String(),
+        "type": type,
       };
 }

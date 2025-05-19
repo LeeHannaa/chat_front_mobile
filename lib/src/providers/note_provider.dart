@@ -19,7 +19,7 @@ class NoteProvider extends ChangeNotifier {
       _notes.addAll(response);
       notifyListeners();
     } catch (e) {
-      log('Error loading chat rooms: $e');
+      log('Error loading chat notes: $e');
     }
   }
 

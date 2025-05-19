@@ -3,11 +3,11 @@ import 'package:chat_application/src/services/databaseHelper_service.dart';
 import 'package:flutter/material.dart';
 
 class ChatmessageSqfliteProvider with ChangeNotifier {
-  List _chatMessage = [];
+  List<Message> _chatMessage = [];
 
-  List get chatMessage => _chatMessage;
+  List<Message> get chatMessage => _chatMessage;
 
-  Future<List> loadChatMessages(int roomId) async {
+  Future<List<Message>> loadChatMessages(int roomId) async {
     _chatMessage = await DatabaseHelper().getChatMessagesByRoomId(roomId);
     notifyListeners();
     return _chatMessage;

@@ -28,9 +28,9 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
     _loadMyIdAndMyName();
     final chatRoomProvider =
         Provider.of<ChatRoomProvider>(context, listen: false);
-    chatRoomProvider.loadChatRooms();
+    chatRoomProvider.loadChatRooms(context);
     _socketService.setMessageHandler((message) {
-      chatRoomProvider.handleSocketMessage(message);
+      chatRoomProvider.handleSocketMessage(message, context);
     });
   }
 
@@ -72,9 +72,9 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
                           'from': 'chatlist',
                         });
                         if (result == true) {
-                          provider.loadChatRooms();
+                          provider.loadChatRooms(context);
                           _socketService.setMessageHandler((message) {
-                            provider.handleSocketMessage(message);
+                            provider.handleSocketMessage(message, context);
                           });
                         }
                       });
