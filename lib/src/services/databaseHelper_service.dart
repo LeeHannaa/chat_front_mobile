@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static const _databaseName = "chatService.db";
-  static const _databaseVersion = 7;
+  static const _databaseVersion = 10;
 
   // DatabaseHelper를 싱글턴으로 하여 데이터베이스 인스턴스가
   // 한번만 초기화 되도록함
@@ -44,7 +44,6 @@ class DatabaseHelper {
             name TEXT NOT NULL,
             lastmsg TEXT NOT NULL,
             num INTEGER NOT NULL,
-            dateTime TEXT NOT NULL,
             updateLastMsgTime TEXT NOT NULL
           );
         ''');
@@ -55,7 +54,8 @@ class DatabaseHelper {
             writerId INTEGER NOT NULL,
             roomId INTEGER NOT NULL,
             message TEXT NOT NULL,
-            createTime TEXT NOT NULL
+            createTime TEXT NOT NULL,
+            type TEXT NOT NULL
           )
         ''');
   }
@@ -118,16 +118,7 @@ class DatabaseHelper {
   ''');
   }
 
-  // Future<List<Message>> getChatMessages() async {
-  //   final db = await database;
-  //   var res = await db.query('chatMessage');
-  //   List<Message> list = res.isNotEmpty
-  //       ? res.map((c) => Message.fromJsonSqlite(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-
-  Future<List> getChatMessagesByRoomId(int roomId) async {
+  Future<List<Message>> getChatMessagesByRoomId(int roomId) async {
     final db = await database;
     var res = await db.query(
       'chatMessage',
@@ -135,8 +126,8 @@ class DatabaseHelper {
       whereArgs: [roomId], // roomId를 조건으로 사용
     );
     // print("Database Query Result: $res");
-    List<Map<String, dynamic>> list = res.isNotEmpty
-        ? res.map((c) => Message.fromJsonSqlite(c).toMap()).toList()
+    List<Message> list = res.isNotEmpty
+        ? res.map((c) => Message.fromJsonSqlite(c)).toList()
         : [];
     return list;
   }

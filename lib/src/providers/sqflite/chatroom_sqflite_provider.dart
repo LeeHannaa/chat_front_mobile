@@ -4,22 +4,23 @@ import 'package:chat_application/src/services/databaseHelper_service.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoomSqfliteProvider with ChangeNotifier {
-  List<ChatRoom> _chatRooms = [];
+  List<ChatRoom> _chatRooms = List.empty(growable: true);
 
   List<ChatRoom> get chatRooms => _chatRooms;
 
   Future<List<ChatRoom>> loadChatRooms() async {
     _chatRooms = await DatabaseHelper().getChatRooms();
-    for (var chatRoom in _chatRooms) {
-      log('ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
-    }
+    log("앱 내 저장소에서 데이터 가져옴!");
+    // for (var chatRoom in _chatRooms) {
+    //   log('ChatRooms ID: ${chatRoom.id}, Name: ${chatRoom.name}, lastmsg: ${chatRoom.lastmsg}, Time: ${chatRoom.updateLastMsgTime}');
+    // }
     notifyListeners();
     return _chatRooms;
   }
 
   Future<void> addChatRoom(ChatRoom chatRoom) async {
     await DatabaseHelper().insertChatRoom(chatRoom);
-    await loadChatRooms();
+    // await loadChatRooms();
   }
 
   Future<void> updateLastMessages() async {

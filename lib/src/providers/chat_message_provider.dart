@@ -27,27 +27,26 @@ class ChatMessageProvider extends ChangeNotifier {
       String from, int? aptId, ScrollController scrollController) async {
     myId = myId;
     if (from == 'chatlist') {
+      _messagesNoType.clear();
+      _messages.clear();
       _roomId = roomId!;
       try {
-        final response = await fetchChatsByRoom(_roomId, myId, context);
-        _messagesNoType.clear();
+        final response = await fetchChatsByRoom(_roomId, myId);
         _messagesNoType.addAll(response);
       } catch (e) {
-        // api 연결 실패로 앱 내에 저장된 데이터 가져오기
-        final response = await Provider.of<ChatmessageSqfliteProvider>(context,
+        // sqflite로 앱 내에 저장된 채팅 내역 데이터 가져오기 (바로 Message 타입으로 저장)
+        List<Message> list = await Provider.of<ChatmessageSqfliteProvider>(
+                context,
                 listen: false)
             .loadChatMessages(_roomId);
-
-        _messagesNoType.clear();
-        _messagesNoType.addAll(response);
+        _messages.addAll(list);
         notifyListeners();
-        log('Error loading chat rooms: $e');
+        log('Error loading chat message: $e');
       }
     } else {
       // 아파트 목록에서 채팅으로 넘어가는 경우
       try {
         final response = await fetchChatsByApt(myId, aptId!);
-        _messagesNoType.clear();
         _messagesNoType.addAll(response);
         _roomId = _messagesNoType[0]['roomId']; // roomId 저장
         notifyListeners();
@@ -56,10 +55,9 @@ class ChatMessageProvider extends ChangeNotifier {
       }
     }
     // 채팅방 웹소켓 경로 추가
-    WebSocketService().subscribeToChatRoom(roomId!, myId);
+    WebSocketService().subscribeToChatRoom(_roomId, myId);
     if (_messagesNoType[0]['id'] != null) {
       // messages list에 타입 변환해서 정보 담기
-      _messages.clear();
       late List<Message> list = _messagesNoType
           .map<Message>((json) => Message.fromJson(json))
           .toList();
@@ -88,25 +86,28 @@ class ChatMessageProvider extends ChangeNotifier {
     }
   }
 
-  void deleteForAll(Message message, int myId) async {
+  void deleteForAll(Message message, int myId, BuildContext context) async {
     await deleteChatMessageToAll(message.id, myId);
 
     final index = _messages.indexOf(message);
     if (index != -1) {
       // messages[index] = message.copyWith(message: "삭제된 메시지입니다.", delete: true);
       _messages.removeAt(index);
+      // sqflite에서도 삭제된 채팅 내역 지우기
+      await Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+          .removeChatMessages(message.id);
     }
   }
 
-  void handleSocketMessage(Map<String, dynamic> data) {
+  void handleSocketMessage(Map<String, dynamic> data, BuildContext context) {
     if (data['type'] == 'CHAT') {
       final messagePayload = data['message'];
       final receivedChat = Message.fromJson(messagePayload);
       _messages.add(receivedChat);
       notifyListeners();
-      // sqlite에 저장
-      // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
-      //     .addChatMessages(receivedChat);
+      // sqflite에 받은 채팅 메시지 저장
+      Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+          .addChatMessages(receivedChat);
     } else if (data['type'] == 'INFO') {
       // 누가 들어왔다는 알림 메시지 처리
       int changeNumber = int.parse(data['message'].toString());
@@ -153,9 +154,9 @@ class ChatMessageProvider extends ChangeNotifier {
         final receivedChat = Message.fromJson(messagePayload);
         _messages.add(receivedChat);
         notifyListeners();
-        // sqlite에 저장
-        // Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
-        //     .addChatMessages(receivedChat);
+        // sqflite에도 SYSTEM 메시지 저장
+        Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+            .addChatMessages(receivedChat);
       } else {
         log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");
       }
@@ -169,10 +170,9 @@ class ChatMessageProvider extends ChangeNotifier {
         if (receivedChat.beforeMsgId != null) {
           _hiddenBtId.add(receivedChat.beforeMsgId!);
         }
-        // sqlite에 저장
-        // Provider.of<ChatmessageSqfliteProvider>(context,
-        //         listen: false)
-        //     .addChatMessages(receivedChat);
+        // sqflite에도 SYSTEM 메시지 저장
+        Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+            .addChatMessages(receivedChat);
         notifyListeners();
       } else {
         log("❌ message가 Map이 아님: ${messagePayload.runtimeType}");

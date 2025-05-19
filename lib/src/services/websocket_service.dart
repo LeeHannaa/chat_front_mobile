@@ -51,7 +51,7 @@ class WebSocketService {
 
   // 채팅방 구독 경로 추가 로직
   void subscribeToChatRoom(int roomId, int myId) {
-    final subscriptionId = 'chatroom-$roomId';
+    final subscriptionId = 'chatroom-$roomId-user-$myId';
     final dest = '/topic/chatroom/$roomId';
     if (!_subscriptions.containsKey(dest)) {
       log("채팅방 입장시 구독 경로 연결!! $roomId");
@@ -59,7 +59,7 @@ class WebSocketService {
         destination: dest,
         headers: {
           'id': subscriptionId,
-          'myId': myId.toString(), // 서버에서 읽을 수 있도록 추가
+          // 'myId': myId.toString(), // 서버에서 읽을 수 있도록 추가
         },
         callback: (StompFrame frame) {
           if (frame.body != null) {
@@ -74,10 +74,11 @@ class WebSocketService {
     }
   }
 
+  // TODO : 서버랑 userId와 subId 매치해서 어떤 유저가 들어오고 나가는지 확실히 정리하기
   /// 채팅방 구독 취소
-  void unsubscribeFromChatRoom(int roomId) {
+  void unsubscribeFromChatRoom(int roomId, int myId) {
     log("채팅방 퇴장시 구독 경로 취소!! $roomId");
-    final subscriptionId = 'chatroom-$roomId';
+    final subscriptionId = 'chatroom-$roomId-user-$myId';
     if (_subscriptions.containsKey(subscriptionId)) {
       _subscriptions[subscriptionId]!(); // 구독 취소
       _subscriptions.remove(subscriptionId);

@@ -120,6 +120,7 @@ class _AptDetailPageState extends State<AptDetailPage> {
                                   onPressed: () {
                                     context.push('/chat', extra: {
                                       'id': widget.aptId,
+                                      'myId': myId,
                                       'name': widget.aptName,
                                       'from': 'apt'
                                     }); // 채팅 페이지로 이동

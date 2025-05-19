@@ -27,10 +27,12 @@ final router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final extra = state.extra as Map<String, dynamic>? ?? {};
         final id = extra['id'] as int? ?? -1; // 채팅방 id || 매물 id
+        final myId = extra['myId'] as int? ?? -1;
         final chatName = extra['name'] as String? ?? '알 수 없음';
         final from = extra['from'] as String? ?? '경로 없음';
         return ChatPage(
           id: id,
+          myId: myId,
           chatName: chatName,
           from: from,
         );

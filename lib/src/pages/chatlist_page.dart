@@ -1,3 +1,4 @@
+import 'package:chat_application/src/data/keyData.dart';
 import 'package:chat_application/src/providers/chatroom_provider.dart';
 import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
@@ -16,14 +17,20 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
   final ScrollController _scrollController = ScrollController();
   final WebSocketService _socketService = WebSocketService();
 
+  int? myId;
+  Future<void> _loadMyIdAndMyName() async {
+    myId = await SharedPreferencesHelper.getMyId();
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadMyIdAndMyName();
     final chatRoomProvider =
         Provider.of<ChatRoomProvider>(context, listen: false);
-    chatRoomProvider.loadChatRooms();
+    chatRoomProvider.loadChatRooms(context);
     _socketService.setMessageHandler((message) {
-      chatRoomProvider.handleSocketMessage(message);
+      chatRoomProvider.handleSocketMessage(message, context);
     });
   }
 
@@ -60,13 +67,14 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
                       onTap: () async {
                         final result = await context.push('/chat', extra: {
                           'id': chat.id,
+                          'myId': myId,
                           'name': chat.name,
                           'from': 'chatlist',
                         });
                         if (result == true) {
-                          provider.loadChatRooms();
+                          provider.loadChatRooms(context);
                           _socketService.setMessageHandler((message) {
-                            provider.handleSocketMessage(message);
+                            provider.handleSocketMessage(message, context);
                           });
                         }
                       });
