@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:chat_application/model/model_sendMsg.dart';
 import 'package:chat_application/src/providers/chat_message_provider.dart';
 import 'package:chat_application/src/providers/sqflite/chatroom_sqflite_provider.dart';
 import 'package:chat_application/src/services/websocket_service.dart';
@@ -139,21 +140,22 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               ),
-              const Divider(height: 1.0),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: ChatInputField(
-                  messageController: messageController,
-                  messageFocusNode: messageFocusNode,
-                  onSendMessage: () => _sendMessage(provider.roomId),
-                  onChanged: (value) {
-                    setState(() {
-                      isBtActive = value.trim().isNotEmpty;
-                    });
-                  },
-                  isBtActive: isBtActive,
-                ),
-              ),
+              (chatMessages.isNotEmpty && chatMessages[0].writerId != null)
+                  ? Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ChatInputField(
+                        messageController: messageController,
+                        messageFocusNode: messageFocusNode,
+                        onSendMessage: () => _sendMessage(provider.roomId),
+                        onChanged: (value) {
+                          setState(() {
+                            isBtActive = value.trim().isNotEmpty;
+                          });
+                        },
+                        isBtActive: isBtActive,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ],
           );
         }));
@@ -163,14 +165,14 @@ class _ChatPageState extends State<ChatPage> {
     String message = messageController.text;
     if (message.isNotEmpty) {
       developer.log("roomId저장하는 Id 확인: $roomId");
-      final Map<String, Object> messageData = {
-        'roomId': roomId,
-        'chatName': widget.chatName,
-        'msg': message,
-        'writerId': widget.myId,
-        'writerName': myName!,
-        'regDate': DateTime.now().toIso8601String(),
-      };
+      final messageData = SendMessage(
+        roomId: roomId,
+        chatName: widget.chatName,
+        msg: message,
+        writerId: widget.myId,
+        writerName: myName!,
+        regDate: DateTime.now().toIso8601String(),
+      );
       _socketService.sendMessage(messageData);
       messageController.clear();
       setState(() {

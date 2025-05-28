@@ -46,3 +46,14 @@ Future<void> postInviteUserInGroupChat(
     throw Exception('Failed to invite user in group chat');
   }
 }
+
+Future<int> fetchConnectUserChat(int userId, int myId) async {
+  try {
+    final response =
+        await DioClient.dio.get('/chat/connect/$userId?myId=$myId');
+    int dataRoomId = int.parse(response.data.toString());
+    return dataRoomId;
+  } catch (e) {
+    throw Exception('Failed to load unreadCount by chatRoom');
+  }
+}

@@ -2,10 +2,16 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:chat_application/apis/noteApi.dart';
 import 'package:chat_application/model/model_apt.dart';
+import 'package:chat_application/model/model_chatroomInfo.dart';
+import 'package:chat_application/model/model_sendMsg.dart';
 import 'package:chat_application/src/data/keyData.dart';
+import 'package:chat_application/src/providers/chatRoom_provider.dart';
+import 'package:chat_application/src/providers/chatroomInfo_provider.dart';
+import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_application/size_config.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../component/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -20,10 +26,16 @@ class AptDetailPage extends StatefulWidget {
 }
 
 class _AptDetailPageState extends State<AptDetailPage> {
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController noteController = TextEditingController();
+  final WebSocketService _socketService = WebSocketService();
+
   int? myId;
+  String? myName;
   // myId 불러오는 함수
-  Future<void> _loadMyId() async {
+  Future<void> _loadMyIdAndMyName() async {
     myId = await SharedPreferencesHelper.getMyId();
+    myName = await SharedPreferencesHelper.getMyName();
   }
 
   Apt? _apt;
@@ -42,9 +54,6 @@ class _AptDetailPageState extends State<AptDetailPage> {
       log('Failed to load data: ${response.statusCode}');
     }
   }
-
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController noteController = TextEditingController();
 
   Future<void> sendNote() async {
     final phone = phoneController.text.replaceAll(RegExp(r'\D'), ''); // 숫자만
@@ -72,11 +81,30 @@ class _AptDetailPageState extends State<AptDetailPage> {
     }
   }
 
+  Future<void> _handleAPTClick() async {
+    final messageData = SendMessage(
+      roomId: null, // 없음
+      aptId: widget.aptId, // aptid
+      chatName: null, // 없음
+      msg: // 현재 url
+          "http://localhost:5173/aptdetail?id=${widget.aptId}&name=${widget.aptName}",
+      writerId: myId!,
+      writerName: myName!,
+      regDate: DateTime.now().toIso8601String(),
+    );
+    _socketService.sendMessage(messageData);
+  }
+
   @override
   void initState() {
     super.initState();
-    _loadMyId();
+    _loadMyIdAndMyName();
     fetchData();
+    final chatRoomInfoProvider =
+        Provider.of<ChatRoomInfoProvider>(context, listen: false);
+    _socketService.setMessageHandler((message) {
+      chatRoomInfoProvider.handleSocketMessage(message, context);
+    });
   }
 
   @override
@@ -118,12 +146,7 @@ class _AptDetailPageState extends State<AptDetailPage> {
                               children: [
                                 ElevatedButton(
                                   onPressed: () {
-                                    context.push('/chat', extra: {
-                                      'id': widget.aptId,
-                                      'myId': myId,
-                                      'name': widget.aptName,
-                                      'from': 'apt'
-                                    }); // 채팅 페이지로 이동
+                                    _handleAPTClick();
                                   },
                                   child: const Text("채팅 문의"),
                                 ),
@@ -155,7 +178,7 @@ class _AptDetailPageState extends State<AptDetailPage> {
                               ),
                               ElevatedButton(
                                 onPressed: sendNote,
-                                child: const Text('쪽지 문의'),
+                                child: const Text('문의'),
                               ),
                             ],
                           ),

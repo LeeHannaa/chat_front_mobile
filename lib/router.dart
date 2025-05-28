@@ -4,7 +4,7 @@ import 'package:chat_application/src/pages/aptlist_page.dart';
 import 'package:chat_application/src/pages/chat_page.dart';
 import 'package:chat_application/src/pages/chatlist_page.dart';
 import 'package:chat_application/src/pages/home_page.dart';
-import 'package:chat_application/src/pages/note_page.dart';
+import 'package:chat_application/src/pages/person_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,8 +39,9 @@ final router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/note',
-      builder: (BuildContext context, GoRouterState state) => const NotePage(),
+      path: '/person',
+      builder: (BuildContext context, GoRouterState state) =>
+          const PersonPage(),
     ),
     GoRoute(
       path: '/aptlist',

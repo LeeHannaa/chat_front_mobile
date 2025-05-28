@@ -13,7 +13,7 @@ class Message {
   });
   final String id;
   final String name;
-  final int writerId;
+  final int? writerId;
   String? message;
   final int roomId;
   final DateTime createTime;
@@ -31,7 +31,7 @@ class Message {
     return Message(
         id: json['id'] ?? '',
         name: json['writerName'] ?? 'Unknown',
-        writerId: json['writerId'] ?? 0,
+        writerId: json['writerId'],
         roomId: json['roomId'] ?? 0,
         message: json['msg'] ?? '',
         createTime: json['createdDate'] != null

@@ -81,8 +81,8 @@ class _HomePageState extends State<HomePage> {
         title: Text(widget.title),
         actions: [
           IconButton(
-            icon: const Icon(Icons.contact_support), // 쪽지 아이콘
-            onPressed: () => context.push('/note'),
+            icon: const Icon(Icons.person),
+            onPressed: () => context.push('/person'),
           ),
           IconButton(
             icon: const Icon(Icons.wechat), // 채팅 아이콘

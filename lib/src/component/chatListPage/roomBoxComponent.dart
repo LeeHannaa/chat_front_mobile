@@ -67,11 +67,9 @@ class _RoomBoxState extends State<RoomBox> {
           child: Row(
             children: [
               CircleAvatar(
-                  child: widget.chatroom.num > 1
-                      ? widget.chatroom.num > 2
-                          ? const Icon(Icons.group)
-                          : const Icon(Icons.person)
-                      : const Icon(Icons.person_off)),
+                  child: widget.chatroom.num > 2
+                      ? const Icon(Icons.group)
+                      : const Icon(Icons.person)),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
