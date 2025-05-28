@@ -1,6 +1,7 @@
 // lib/services/websocket_service.dart
 import 'dart:convert';
 import 'dart:developer';
+import 'package:chat_application/model/model_sendMsg.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class WebSocketService {
@@ -74,7 +75,6 @@ class WebSocketService {
     }
   }
 
-  // TODO : 서버랑 userId와 subId 매치해서 어떤 유저가 들어오고 나가는지 확실히 정리하기
   /// 채팅방 구독 취소
   void unsubscribeFromChatRoom(int roomId, int myId) {
     log("채팅방 퇴장시 구독 경로 취소!! $roomId");
@@ -92,7 +92,7 @@ class WebSocketService {
     _onMessage = handler;
   }
 
-  void sendMessage(Map<String, Object> messageData) async {
+  void sendMessage(SendMessage messageData) async {
     stompClient.send(
       destination: '/app/message',
       body: jsonEncode(messageData),

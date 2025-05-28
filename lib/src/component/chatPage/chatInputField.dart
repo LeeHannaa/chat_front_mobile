@@ -28,6 +28,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          const Divider(height: 1.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             child: Row(

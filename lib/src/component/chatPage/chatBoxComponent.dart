@@ -122,7 +122,7 @@ class _ChatBoxState extends State<ChatBox> {
                                       try {
                                         await postInviteUserInGroupChat(
                                             widget.roomId,
-                                            widget.chatmessage.writerId,
+                                            widget.chatmessage.writerId!,
                                             widget.chatmessage.id);
                                         setState(() {
                                           widget.hiddenBtId
