@@ -86,7 +86,7 @@ class _PersonPageState extends State<PersonPage> {
                     'id': roomId,
                     'myId': myId,
                     'name': user.name,
-                    'from': "chatlist"
+                    'from': "person"
                   });
                 },
                 child: Container(

@@ -37,8 +37,8 @@ class _ChatPageState extends State<ChatPage> {
   // late StompClient stompClient;
   bool isBtActive = false;
   late int myId = widget.myId ?? -1;
-
   String? myName;
+  bool isGroup = false;
 
   Future<void> _loadMyIdAndMyName() async {
     if (myId < 0) {
@@ -49,7 +49,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _initializeChat() async {
     await _loadMyIdAndMyName();
-    developer.log("이름들 가져오기 성공");
+    if (widget.from == 'group') {
+      isGroup = true; // 지금은 ui 웹에만 있음 : 단체 채팅방을 만들고 채팅방으로 이동한 경우 표시
+    }
     // 소켓 구독 경로 추가 포함
     final chatMessageProvider =
         Provider.of<ChatMessageProvider>(context, listen: false);
@@ -89,6 +91,7 @@ class _ChatPageState extends State<ChatPage> {
     messageController.dispose();
     chatInputScrollController.dispose();
     messageFocusNode.dispose();
+    WebSocketService().setMessageHandler((_) {});
     WebSocketService().unsubscribeFromChatRoom(chatRoomId, myId);
     super.dispose();
   }
@@ -144,7 +147,10 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               ),
-              (chatMessages.isNotEmpty && chatMessages[0].writerId != null)
+              (widget.from == 'person' ||
+                      isGroup ||
+                      chatMessages.isNotEmpty &&
+                          chatMessages[0].writerId != null)
                   ? Align(
                       alignment: Alignment.bottomCenter,
                       child: ChatInputField(
