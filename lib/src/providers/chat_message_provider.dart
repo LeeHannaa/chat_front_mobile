@@ -20,40 +20,29 @@ class ChatMessageProvider extends ChangeNotifier {
   var _roomId = 0;
   int get roomId => _roomId;
 
-  final Set<String> _hiddenBtId = Set<String>();
-  Set<String> get hiddenBtId => _hiddenBtId;
+  final Set<int> _hiddenBtId = Set<int>();
+  Set<int> get hiddenBtId => _hiddenBtId;
 
   Future<void> loadChatMessages(int myId, int? roomId, BuildContext context,
-      String from, int? aptId, ScrollController scrollController) async {
+      ScrollController scrollController) async {
     myId = myId;
-    if (from == 'chatlist') {
-      _messagesNoType.clear();
-      _messages.clear();
-      _roomId = roomId!;
-      try {
-        final response = await fetchChatsByRoom(_roomId, myId);
-        _messagesNoType.addAll(response);
-      } catch (e) {
-        // sqflite로 앱 내에 저장된 채팅 내역 데이터 가져오기 (바로 Message 타입으로 저장)
-        List<Message> list = await Provider.of<ChatmessageSqfliteProvider>(
-                context,
-                listen: false)
-            .loadChatMessages(_roomId);
-        _messages.addAll(list);
-        notifyListeners();
-        log('Error loading chat message: $e');
-      }
-    } else {
-      // 아파트 목록에서 채팅으로 넘어가는 경우
-      try {
-        final response = await fetchChatsByApt(myId, aptId!);
-        _messagesNoType.addAll(response);
-        _roomId = _messagesNoType[0]['roomId']; // roomId 저장
-        notifyListeners();
-      } catch (e) {
-        log('Error loading chat rooms by apt: $e');
-      }
+
+    _messagesNoType.clear();
+    _messages.clear();
+    _roomId = roomId!;
+    try {
+      final response = await fetchChatsByRoom(_roomId, myId);
+      _messagesNoType.addAll(response);
+    } catch (e) {
+      // sqflite로 앱 내에 저장된 채팅 내역 데이터 가져오기 (바로 Message 타입으로 저장)
+      List<Message> list =
+          await Provider.of<ChatmessageSqfliteProvider>(context, listen: false)
+              .loadChatMessages(_roomId);
+      _messages.addAll(list);
+      notifyListeners();
+      log('Error loading chat message: $e');
     }
+
     // 채팅방 웹소켓 경로 추가
     WebSocketService().subscribeToChatRoom(_roomId, myId);
     if (_messagesNoType[0]['id'] != null) {
@@ -65,11 +54,10 @@ class ChatMessageProvider extends ChangeNotifier {
       _messages.addAll(list);
       notifyListeners();
     }
-
-    // 메시지 추가 후 스크롤
-    moveScroll(scrollController);
     // 내가 안읽은 메시지 수 가져오기
     loadUnreadCountByRoom(myId);
+    // 메시지 추가 후 스크롤
+    moveScroll(scrollController);
   }
 
   void loadUnreadCountByRoom(int myId) async {
