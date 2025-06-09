@@ -18,7 +18,7 @@ class ChatmessageSqfliteProvider with ChangeNotifier {
     await loadChatMessages(message.roomId);
   }
 
-  Future<void> removeChatMessages(String id) async {
+  Future<void> removeChatMessages(int id) async {
     await DatabaseHelper().deleteChatMessage(id);
     // await loadChatMessages();
   }

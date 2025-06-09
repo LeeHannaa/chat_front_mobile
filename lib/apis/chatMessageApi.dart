@@ -22,10 +22,10 @@ Future<List> fetchChatsByApt(int myId, int aptId) async {
   }
 }
 
-Future<void> deleteChatMessageToMe(String msgId, int myId) async {
+Future<void> deleteChatMessageToMe(int msgId, int myId) async {
   await DioClient.dio.delete('/chatmsg/delete/me/$msgId?myId=$myId');
 }
 
-Future<void> deleteChatMessageToAll(String msgId, int myId) async {
+Future<void> deleteChatMessageToAll(int msgId, int myId) async {
   await DioClient.dio.delete('/chatmsg/delete/all/$msgId?myId=$myId');
 }

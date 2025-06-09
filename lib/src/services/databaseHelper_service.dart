@@ -49,7 +49,7 @@ class DatabaseHelper {
         ''');
     await db.execute('''
           CREATE TABLE chatMessage (
-            id TEXT NOT NULL PRIMARY KEY UNIQUE,
+            id INTEGER NOT NULL PRIMARY KEY UNIQUE,
             name TEXT NOT NULL,
             writerId INTEGER NOT NULL,
             roomId INTEGER NOT NULL,
@@ -137,7 +137,7 @@ class DatabaseHelper {
     return await db.insert('chatMessage', message.toMap());
   }
 
-  Future<int> deleteChatMessage(String id) async {
+  Future<int> deleteChatMessage(int id) async {
     final db = await database;
     return await db.delete(
       'chatMessage',

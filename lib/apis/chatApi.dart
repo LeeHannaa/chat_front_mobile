@@ -32,7 +32,7 @@ Future<void> deleteChatRoom(int roomId, int myId) async {
 }
 
 Future<void> postInviteUserInGroupChat(
-    int roomId, int userId, String msgId) async {
+    int roomId, int userId, int msgId) async {
   try {
     await DioClient.dio.post(
       '/chat/invite/user/group',

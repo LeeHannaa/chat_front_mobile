@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:chat_application/model/model_chatroomInfo.dart';
 import 'package:chat_application/src/data/keyData.dart';
 import 'package:flutter/material.dart';

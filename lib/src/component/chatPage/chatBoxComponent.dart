@@ -8,7 +8,7 @@ class ChatBox extends StatefulWidget {
   final int myId;
   final int roomId;
   final Message chatmessage;
-  final Set<String> hiddenBtId;
+  final Set<int> hiddenBtId;
   const ChatBox({
     Key? key,
     required this.myId,

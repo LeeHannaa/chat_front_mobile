@@ -11,7 +11,7 @@ class Message {
     this.type,
     this.beforeMsgId,
   });
-  final String id;
+  final int id;
   final String name;
   final int? writerId;
   String? message;
@@ -20,7 +20,7 @@ class Message {
   bool? delete;
   int? unreadCount;
   String? type;
-  String? beforeMsgId;
+  int? beforeMsgId;
 
   @override
   String toString() {
@@ -29,7 +29,7 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-        id: json['id'] ?? '',
+        id: json['id'] ?? 0,
         name: json['writerName'] ?? 'Unknown',
         writerId: json['writerId'],
         roomId: json['roomId'] ?? 0,
@@ -40,22 +40,22 @@ class Message {
         delete: json['delete'] ?? false,
         unreadCount: json['unreadCount'] ?? 0,
         type: json['type'] ?? '',
-        beforeMsgId: json['beforeMsgId'] ?? '');
+        beforeMsgId: json['beforeMsgId'] ?? 0);
   }
 
   factory Message.fromJsonSqlite(Map<String, dynamic> json) {
     return Message(
-        id: json['id'],
+        id: int.parse(json['id'].toString()),
         name: json['name'],
         writerId: json['writerId'],
-        roomId: json['roomId'],
+        roomId: int.parse(json['roomId'].toString()),
         message: json['message'],
         createTime: DateTime.parse(json['createTime']),
         type: json['type'] ?? '');
   }
 
   Message copyWith({
-    String? id,
+    int? id,
     String? message,
     int? writerId,
     String? name,

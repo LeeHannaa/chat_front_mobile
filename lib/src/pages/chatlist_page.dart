@@ -25,6 +25,7 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
   @override
   void initState() {
     super.initState();
+    if (!mounted) return;
     _loadMyIdAndMyName();
     final chatRoomProvider =
         Provider.of<ChatRoomProvider>(context, listen: false);
@@ -38,6 +39,7 @@ class _ChatListPageState extends State<ChatListPage> with RouteAware {
 
   @override
   void dispose() {
+    WebSocketService().setMessageHandler((_) {});
     _scrollController.dispose();
     super.dispose();
   }
