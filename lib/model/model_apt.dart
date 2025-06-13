@@ -1,25 +1,22 @@
 class Apt {
   Apt({
-    required this.id,
+    required this.idx,
     required this.aptName,
     required this.userId,
-    required this.dateTime,
   });
-  final int id;
+  final int idx;
   final String aptName;
   final int userId;
-  final DateTime dateTime;
 
   @override
   String toString() {
-    return '$aptName (ID: $id, userId: $userId, Date: ${dateTime.toLocal()})';
+    return '$aptName (ID: $idx, userId: $userId)';
   }
 
   factory Apt.fromJson(Map<String, dynamic> json) {
     return Apt(
-        id: json['id'] ?? 0,
-        aptName: json['name'] ?? '',
-        userId: json['userId'] ?? 0,
-        dateTime: DateTime.parse(json['regDate']));
+        idx: json['idx'] ?? 0,
+        aptName: json['aptName'] ?? '',
+        userId: json['userId'] ?? 0);
   }
 }

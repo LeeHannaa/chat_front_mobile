@@ -116,7 +116,7 @@ class ChatMessageProvider extends ChangeNotifier {
         log("상대방 나감!");
       }
     } else if (data['type'] == 'DELETE') {
-      String deleteMsgId = data['messageId'];
+      int deleteMsgId = data['messageId'];
       log("특정 메시지 삭제!! $deleteMsgId");
       int index = _messages.indexWhere((message) => message.id == deleteMsgId);
       if (index != -1) {

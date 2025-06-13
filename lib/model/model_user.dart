@@ -1,17 +1,17 @@
 class User {
   User({
-    required this.id,
-    required this.name,
+    required this.userIdx,
+    required this.userId,
   });
-  final int id;
-  final String name;
+  final int userIdx;
+  final String userId;
 
   @override
   String toString() {
-    return '$name (id: $id)';
+    return '$userId (id: $userIdx)';
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(id: json['id'] ?? 0, name: json['name'] ?? '');
+    return User(userIdx: json['userIdx'] ?? 0, userId: json['userId'] ?? '');
   }
 }
