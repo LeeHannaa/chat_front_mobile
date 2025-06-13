@@ -181,7 +181,7 @@ class _ChatPageState extends State<ChatPage> {
         msg: message,
         writerId: myId,
         writerName: myName!,
-        regDate: DateTime.now().toIso8601String(),
+        cdate: DateTime.now().toIso8601String(),
       );
       _socketService.sendMessage(messageData);
       messageController.clear();

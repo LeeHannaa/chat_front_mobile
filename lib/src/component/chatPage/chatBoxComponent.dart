@@ -81,7 +81,7 @@ class _ChatBoxState extends State<ChatBox> {
                       ),
                       const SizedBox(height: 8), // 메시지와 시간 간의 간격
                       Text(
-                        formatDate(widget.chatmessage.createTime), // 메시지 시간
+                        formatDate(widget.chatmessage.cdate), // 메시지 시간
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color.fromARGB(255, 79, 79, 79),

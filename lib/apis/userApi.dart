@@ -10,11 +10,11 @@ Future<Map<String, dynamic>> fetchUserInfo(int myId) async {
   }
 }
 
-Future<void> sendFcmToken(int myId, String fcmToken) async {
+Future<void> sendFcmToken(int myId, String appCode) async {
   try {
     await DioClient.dio.post(
       '/fcmtoken/save',
-      data: {'userId': myId, 'fcmToken': fcmToken},
+      data: {'userIdx': myId, 'appCode': appCode},
     );
   } catch (e) {
     throw Exception('Failed to save the fcm token');

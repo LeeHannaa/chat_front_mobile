@@ -2,10 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:chat_application/apis/noteApi.dart';
 import 'package:chat_application/model/model_apt.dart';
-import 'package:chat_application/model/model_chatroomInfo.dart';
 import 'package:chat_application/model/model_sendMsg.dart';
 import 'package:chat_application/src/data/keyData.dart';
-import 'package:chat_application/src/providers/chatRoom_provider.dart';
 import 'package:chat_application/src/providers/chatroomInfo_provider.dart';
 import 'package:chat_application/src/services/websocket_service.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +88,7 @@ class _AptDetailPageState extends State<AptDetailPage> {
           "http://localhost:5173/aptdetail?id=${widget.aptId}&name=${widget.aptName}",
       writerId: myId!,
       writerName: myName!,
-      regDate: DateTime.now().toIso8601String(),
+      cdate: DateTime.now().toIso8601String(),
     );
     _socketService.sendMessage(messageData);
   }

@@ -80,12 +80,12 @@ class _PersonPageState extends State<PersonPage> {
               final user = _users[index];
               return GestureDetector(
                 onTap: () async {
-                  var roomId = await fetchConnectUserChat(user.id, myId!);
+                  var roomId = await fetchConnectUserChat(user.userIdx, myId!);
                   // TODO : 선택한 유저의 채팅방으로 이동
                   context.push('/chat', extra: {
                     'id': roomId,
                     'myId': myId,
-                    'name': user.name,
+                    'name': user.userId,
                     'from': "person"
                   });
                 },
@@ -105,7 +105,7 @@ class _PersonPageState extends State<PersonPage> {
                   ),
                   child: Center(
                     child: Text(
-                      "${user.name} - 채팅ㄱ",
+                      "${user.userId} - 채팅ㄱ",
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

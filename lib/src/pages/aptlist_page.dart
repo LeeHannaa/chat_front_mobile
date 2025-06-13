@@ -82,7 +82,7 @@ class _AptListPageState extends State<AptListPage> {
               return GestureDetector(
                 onTap: () {
                   context.push('/aptDetail',
-                      extra: {'aptId': apt.id, 'aptName': apt.aptName});
+                      extra: {'aptId': apt.idx, 'aptName': apt.aptName});
                 },
                 child: Container(
                   width: 100,

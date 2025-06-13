@@ -5,7 +5,7 @@ class SendMessage {
   final String msg;
   final int writerId;
   final String writerName;
-  final String regDate;
+  final String cdate;
 
   SendMessage({
     this.roomId,
@@ -14,7 +14,7 @@ class SendMessage {
     required this.msg,
     required this.writerId,
     required this.writerName,
-    required this.regDate,
+    required this.cdate,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,7 +25,7 @@ class SendMessage {
       'msg': msg,
       'writerId': writerId,
       'writerName': writerName,
-      'regDate': regDate,
+      'cdate': cdate,
     };
   }
 }

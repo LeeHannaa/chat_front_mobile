@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static const _databaseName = "chatService.db";
-  static const _databaseVersion = 10;
+  static const _databaseVersion = 11;
 
   // DatabaseHelper를 싱글턴으로 하여 데이터베이스 인스턴스가
   // 한번만 초기화 되도록함
@@ -54,7 +54,7 @@ class DatabaseHelper {
             writerId INTEGER NOT NULL,
             roomId INTEGER NOT NULL,
             message TEXT NOT NULL,
-            createTime TEXT NOT NULL,
+            cdate TEXT NOT NULL,
             type TEXT NOT NULL
           )
         ''');
@@ -107,7 +107,7 @@ class DatabaseHelper {
         SELECT message 
         FROM chatMessage 
         WHERE chatMessage.roomId = chatRoom.id 
-        ORDER BY createTime DESC 
+        ORDER BY cdate DESC 
         LIMIT 1
     )
     WHERE EXISTS (

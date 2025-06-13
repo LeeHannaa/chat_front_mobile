@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
       final userData = await fetchUserInfo(int.parse(inputId));
       setState(() {
         log("userData 확인 : $userData");
-        _saveMyIdAndName(userData['id'], userData['name']);
+        _saveMyIdAndName(userData['userIdx'], userData['userId']);
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(

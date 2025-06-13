@@ -5,7 +5,7 @@ class Message {
     required this.writerId,
     this.message,
     required this.roomId,
-    required this.createTime,
+    required this.cdate,
     this.delete,
     this.unreadCount,
     this.type,
@@ -16,7 +16,7 @@ class Message {
   final int? writerId;
   String? message;
   final int roomId;
-  final DateTime createTime;
+  final DateTime cdate;
   bool? delete;
   int? unreadCount;
   String? type;
@@ -24,7 +24,7 @@ class Message {
 
   @override
   String toString() {
-    return '$name $message (ID: $id, UserId: $writerId, Num: $roomId, Date: $createTime)';
+    return '$name $message (ID: $id, UserId: $writerId, Num: $roomId, Date: $cdate)';
   }
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -34,8 +34,8 @@ class Message {
         writerId: json['writerId'],
         roomId: json['roomId'] ?? 0,
         message: json['msg'] ?? '',
-        createTime: json['createdDate'] != null
-            ? DateTime.parse(json['createdDate'])
+        cdate: json['cdate'] != null
+            ? DateTime.parse(json['cdate'])
             : DateTime.now(),
         delete: json['delete'] ?? false,
         unreadCount: json['unreadCount'] ?? 0,
@@ -50,7 +50,7 @@ class Message {
         writerId: json['writerId'],
         roomId: int.parse(json['roomId'].toString()),
         message: json['message'],
-        createTime: DateTime.parse(json['createTime']),
+        cdate: DateTime.parse(json['cdate']),
         type: json['type'] ?? '');
   }
 
@@ -60,7 +60,7 @@ class Message {
     int? writerId,
     String? name,
     int? roomId,
-    DateTime? createTime,
+    DateTime? cdate,
     bool? delete,
     int? unreadCount,
     String? type,
@@ -71,7 +71,7 @@ class Message {
         writerId: writerId ?? this.writerId,
         name: name ?? this.name,
         roomId: roomId ?? this.roomId,
-        createTime: createTime ?? this.createTime,
+        cdate: cdate ?? this.cdate,
         delete: delete ?? this.delete,
         unreadCount: unreadCount ?? this.unreadCount,
         type: type ?? this.type);
@@ -84,7 +84,7 @@ class Message {
         "writerId": writerId,
         "roomId": roomId,
         "message": message,
-        "createTime": createTime.toIso8601String(),
+        "cdate": cdate.toIso8601String(),
         "type": type,
       };
 }
