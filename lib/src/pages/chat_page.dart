@@ -19,7 +19,7 @@ class ChatPage extends StatefulWidget {
       this.myId,
       required this.chatName,
       required this.from});
-  final int id; // 매물 id이거나 roomId이거나
+  final int id; // roomId
   final int? myId;
   final String chatName;
   final String from;
@@ -62,6 +62,7 @@ class _ChatPageState extends State<ChatPage> {
       chatInputScrollController,
     );
     chatRoomId = chatMessageProvider.roomId;
+    _socketService.submitChatToIncome(myId, widget.id); // 채팅방 유저 정보 저장
     _socketService.setMessageHandler((message) {
       chatMessageProvider.handleSocketMessage(message, context);
       // 메시지가 화면에 추가된 후 스크롤 이동
@@ -88,11 +89,10 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    _socketService.submitChatToLeave(myId, widget.id); // 채팅방 실시간 나가는 정보 전달
     messageController.dispose();
     chatInputScrollController.dispose();
     messageFocusNode.dispose();
-    WebSocketService().setMessageHandler((_) {});
-    WebSocketService().unsubscribeFromChatRoom(chatRoomId, myId);
     super.dispose();
   }
 

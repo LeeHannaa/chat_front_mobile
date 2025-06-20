@@ -8,7 +8,7 @@ class WebSocketService {
   static final WebSocketService _instance = WebSocketService._internal();
   factory WebSocketService() => _instance;
 
-  late StompClient stompClient;
+  StompClient? stompClient;
   int? _myId;
 
   WebSocketService._internal();
@@ -17,6 +17,12 @@ class WebSocketService {
 
   void connect(int myId) {
     _myId = myId;
+    if (stompClient != null && stompClient!.connected) {
+      log('이전 웹소켓 연결 해제 중...');
+      stompClient!.deactivate();
+      stompClient = null; // 클린하게 초기화
+    }
+
     stompClient = StompClient(
       config: StompConfig(
         url: 'ws://10.0.2.2:8080/ws-stomp',
@@ -25,15 +31,15 @@ class WebSocketService {
         onDisconnect: (_) => log('WebSocket Disconnected'),
       ),
     );
-    stompClient.activate();
+    stompClient!.activate();
   }
 
   void _onConnect(StompFrame frame) {
     log('WebSocket Connected');
     if (_myId != null) {
-      final dest = '/topic/user/$_myId';
+      final dest = '/topic/chat/$_myId';
       if (!_subscriptions.containsKey(dest)) {
-        final sub = stompClient.subscribe(
+        final sub = stompClient!.subscribe(
           destination: dest,
           callback: (StompFrame frame) {
             if (frame.body != null) {
@@ -50,42 +56,6 @@ class WebSocketService {
     }
   }
 
-  // 채팅방 구독 경로 추가 로직
-  void subscribeToChatRoom(int roomId, int myId) {
-    final subscriptionId = 'chatroom-$roomId-user-$myId';
-    final dest = '/topic/chatroom/$roomId';
-    if (!_subscriptions.containsKey(dest)) {
-      log("채팅방 입장시 구독 경로 연결!! $roomId");
-      final sub = stompClient.subscribe(
-        destination: dest,
-        headers: {
-          'id': subscriptionId,
-          // 'myId': myId.toString(), // 서버에서 읽을 수 있도록 추가
-        },
-        callback: (StompFrame frame) {
-          if (frame.body != null) {
-            final parsedData = jsonDecode(frame.body!) as Map<String, dynamic>;
-            log('📩 Received [chatRoom]: $parsedData');
-            // 필요한 핸들러에 전달
-            _onMessage?.call(parsedData);
-          }
-        },
-      );
-      _subscriptions[subscriptionId] = sub;
-    }
-  }
-
-  /// 채팅방 구독 취소
-  void unsubscribeFromChatRoom(int roomId, int myId) {
-    log("채팅방 퇴장시 구독 경로 취소!! $roomId");
-    final subscriptionId = 'chatroom-$roomId-user-$myId';
-    if (_subscriptions.containsKey(subscriptionId)) {
-      _subscriptions[subscriptionId]!(); // 구독 취소
-      _subscriptions.remove(subscriptionId);
-      log('❌ Unsubscribed from chatroom $roomId');
-    }
-  }
-
   // 콜백 설정용
   Function(Map<String, dynamic>)? _onMessage;
   void setMessageHandler(Function(Map<String, dynamic>) handler) {
@@ -93,9 +63,33 @@ class WebSocketService {
   }
 
   void sendMessage(SendMessage messageData) async {
-    stompClient.send(
+    stompClient!.send(
       destination: '/app/message',
       body: jsonEncode(messageData),
+    );
+  }
+
+  void submitChatToIncome(int userId, int roomId) async {
+    // log("채팅방 입장 redis로 정보 전달!");
+    // log("userId: $userId (${userId.runtimeType}), roomId: $roomId (${roomId.runtimeType})");
+
+    stompClient!.send(
+      destination: '/app/chat/income',
+      body: jsonEncode({
+        'roomId': roomId,
+        'userId': userId,
+      }),
+    );
+  }
+
+  void submitChatToLeave(int userId, int roomId) async {
+    log("채팅방 퇴장 redis로 정보 전달!");
+    stompClient!.send(
+      destination: '/app/chat/leave',
+      body: jsonEncode({
+        'roomId': roomId,
+        'userId': userId,
+      }),
     );
   }
 
@@ -105,8 +99,8 @@ class WebSocketService {
       unsub();
     }
     _subscriptions.clear();
-    stompClient.deactivate();
+    stompClient!.deactivate();
   }
 
-  bool get isConnected => stompClient.connected;
+  bool get isConnected => stompClient!.connected;
 }

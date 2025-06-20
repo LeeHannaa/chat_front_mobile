@@ -44,7 +44,7 @@ class ChatMessageProvider extends ChangeNotifier {
     }
 
     // 채팅방 웹소켓 경로 추가
-    WebSocketService().subscribeToChatRoom(_roomId, myId);
+    // WebSocketService().subscribeToChatRoom(_roomId, myId);
     if (_messagesNoType[0]['id'] != null) {
       // 채팅이 존재한다면
       // messages list에 타입 변환해서 정보 담기
